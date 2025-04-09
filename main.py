@@ -1,8 +1,10 @@
 import dearpygui.dearpygui as img
+import ASSD_Editor as editor
 import dearpygui.demo
-from Function import *
+from Signal import *
 import PlotTool.plot_tool as plt_tool
 from math import sin
+from math import sqrt
 
 def save_callback():
     print("Save Clicked")
@@ -12,7 +14,7 @@ img.create_context()
 img.create_viewport()
 img.setup_dearpygui()
 
-function_array: list[Function] = []
+editor = editor.ASSDEditor()
 
 sindatax = []
 sindatay = []
@@ -21,38 +23,35 @@ for i in range(0, 500):
     sindatax.append(i / 1000)
     sindatay.append(0.5 + 0.5 * sin(50 * i / 1000))
 
-function_array.append(Function(name="Test Signal", Xdata=sindatax, Ydata=sindatay))
+editor.signal_array.append(Signal(name="Test Signal", index=len(editor.signal_array), Xdata=sindatax, Ydata=sindatay))
 
-with img.window(label="Main Window", tag="Main Window", no_title_bar=True, no_resize=False):
-    with img.menu_bar():
-        with img.menu(label="Tools"):
-            img.add_text("Available Tools")
-            img.add_separator()
-            if img.add_menu_item(label="Plot Tool"):
-                print("Plot tool")
+sqrtdatax = []
+sqrtdatay = []
 
-    with img.group(horizontal=True):
-        with img.child_window(width=300, resizable_x=True):
-            img.add_text("Signals")
-            for function in function_array:
-                function.ShowPreview()
+for i in range(0, 500):
+    sqrtdatax.append(i / 1000)
+    sqrtdatay.append(0.5 + 0.5 * sqrt(50 * i / 1000))
 
-        with img.child_window(autosize_x=True):
-            with img.tab_bar():
-                with (img.tab(label="Plot Tool")):
-                   plt_tool.plot_tool()
+editor.signal_array.append(Signal(name="Test Signal 2", index=len(editor.signal_array), Xdata=sqrtdatax, Ydata=sqrtdatay))
 
-                if (img.add_tab(label="Filter Tool")):
-                    print("Plot tool")
 
-                if (img.add_tab(label="FFT Tool")):
-                    print("Plot tool")
+editor.Run()
 
-                if (img.add_tab(label="Sampler Tool")):
-                    print("Plot tool")
+#dearpygui.demo.show_demo()
 
-dearpygui.demo.show_demo()
+def update_plot_size(sender, data):
+    # Get dimensions of the window
+    width, height = img.get_item_rect_size("SignalWindow")
 
+    for signal in editor.signal_array:
+        # Apply the dimensions to the plot
+        img.set_item_width(signal.name, width)
+        img.set_item_height(signal.name, width * 0.6)
+
+    img.set_frame_callback(img.get_frame_count() + 10, update_plot_size)
+
+
+img.set_frame_callback(img.get_frame_count() + 1, update_plot_size)
 img.set_primary_window("Main Window", True)
 img.show_viewport()
 img.start_dearpygui()
