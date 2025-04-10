@@ -1,12 +1,14 @@
 import dearpygui.dearpygui as img
 class Signal(object):
-    def __init__(self, name, index: int, Xdata=None, Ydata=None, periodic: bool = False, period: float = 0):
+    def __init__(self, name, index: int, Xdata=None, Ydata=None, x_label: str = "x", y_label: str = "y", periodic: bool = False, period: float = 0):
         self.index: int = index
         self.name = name
         self.Xdata = Xdata
         self.Ydata = Ydata
         self.periodic: bool = periodic
         self.period: float = period
+        self.x_label: str = x_label
+        self.y_label: str = y_label
 
     def IsPeriodic(self) -> bool:
         return self.periodic
