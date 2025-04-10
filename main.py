@@ -23,7 +23,9 @@ for i in range(0, 500):
     sindatax.append(i / 1000)
     sindatay.append(0.5 + 0.5 * sin(50 * i / 1000))
 
+print(len(editor.signal_array))
 editor.signal_array.append(Signal(name="Test Signal", index=len(editor.signal_array), Xdata=sindatax, Ydata=sindatay))
+print(len(editor.signal_array))
 
 sqrtdatax = []
 sqrtdatay = []
@@ -31,8 +33,10 @@ sqrtdatay = []
 for i in range(0, 500):
     sqrtdatax.append(i / 1000)
     sqrtdatay.append(0.5 + 0.5 * sqrt(50 * i / 1000))
+print(len(editor.signal_array))
 
 editor.signal_array.append(Signal(name="Test Signal 2", index=len(editor.signal_array), Xdata=sqrtdatax, Ydata=sqrtdatay))
+print(len(editor.signal_array))
 
 
 editor.Run()
