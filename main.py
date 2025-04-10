@@ -5,7 +5,7 @@ from Signal import *
 import PlotTool.plot_tool as plt_tool
 from math import sin
 from math import sqrt
-
+from math import exp
 
 def save_callback():
     print("Save Clicked")
@@ -24,7 +24,7 @@ for i in range(0, 500):
     sindatax.append(i / 1000)
     sindatay.append(0.5 + 0.5 * sin(50 * i / 1000))
 
-editor.signal_array.append(Signal(name="Test Signal", index=len(editor.signal_array), Xdata=sindatax, Ydata=sindatay))
+editor.signal_array.append(Signal(name="Test Signal", Xdata=sindatax, Ydata=sindatay))
 
 sqrtdatax = []
 sqrtdatay = []
@@ -34,7 +34,9 @@ for i in range(0, 500):
     sqrtdatay.append(0.5 + 0.5 * sqrt(50 * i / 1000))
 
 editor.signal_array.append(
-    Signal(name="Test Signal 2", index=len(editor.signal_array), Xdata=sqrtdatax, Ydata=sqrtdatay))
+    Signal(name="Test Signal 2", Xdata=sqrtdatax, Ydata=sqrtdatay))
+
+editor.signal_array.append(Signal(name="Test Signal 3", math_expr=lambda x: exp(3*x), periodic=True, period=10, x_label="w", y_label="V"))
 
 editor.Run()
 

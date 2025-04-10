@@ -30,7 +30,7 @@ class ASSDEditor(object):
                     self.editor = editor
                     self.signal = signal
 
-            def select_signal(user_data: Data):
+            def select_signal(sender, data, user_data: Data):
                 user_data.editor.selected_signal = user_data.signal
                 print(f"Copied: {str(user_data.signal.name)}")
 

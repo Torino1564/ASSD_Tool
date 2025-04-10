@@ -24,7 +24,8 @@ class PlotTool(Tool):
             img.set_item_label(y_axis_tag, signal.y_label)
 
             # Update line series data
-            img.set_value(series_tag, [signal.GetXData(), signal.GetYData()])
+            xdata, ydata = signal.GetData()
+            img.set_value(series_tag, [xdata, ydata])
 
         with img.plot(label=str(self.name + str(self.Tool.toolId)), width=400, height=240) as plot_id:
             img.add_plot_legend()
