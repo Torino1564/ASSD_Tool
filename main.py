@@ -2,11 +2,11 @@ import dearpygui.dearpygui as img
 import ASSD_Editor as editor
 import dearpygui.demo
 from Signal import *
-import PlotTool.plot_tool as plt_tool
+import Tools.plot_tool as plt_tool
 from math import sin
 from math import sqrt
 from math import exp
-
+import numpy as np
 def save_callback():
     print("Save Clicked")
 
@@ -36,12 +36,11 @@ for i in range(0, 500):
 editor.signal_array.append(
     Signal(name="Test Signal 2", Xdata=sqrtdatax, Ydata=sqrtdatay))
 
-editor.signal_array.append(Signal(name="Test Signal 3", math_expr=lambda x: exp(3*x), periodic=True, period=10, x_label="w", y_label="V"))
+editor.signal_array.append(Signal(name="Test Signal 3", math_expr=MathExpr(lambda x: sin(2*np.pi*x)), periodic=True, period=1, x_label="t", y_label="V"))
 
 editor.Run()
 
-
-# dearpygui.demo.show_demo()
+#dearpygui.demo.show_demo()
 
 def update_plot_size(sender, data):
     # Get dimensions of the window

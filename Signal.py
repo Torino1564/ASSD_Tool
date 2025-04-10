@@ -1,6 +1,20 @@
 import dearpygui.dearpygui as img
+
+
+class MathExpr():
+    def __init__(self, math_expression):
+        self.math_expression = math_expression
+
+    def __call__(self, x: float):
+        return self.math_expression(x)
+
+    def Get(self):
+        return self.math_expression
+
+
 class Signal(object):
-    def __init__(self, name, Xdata=None, Ydata=None, math_expr = None, x_label: str = "x", y_label: str = "y", periodic: bool = False, period: float = 0, preview_span: float = 100):
+    def __init__(self, name, Xdata=None, Ydata=None, math_expr: MathExpr = None, x_label: str = "x", y_label: str = "y",
+                 periodic: bool = False, period: float = 0, preview_span: float = 100):
         self.name = name
         self.Xdata = Xdata
         self.Ydata = Ydata
@@ -8,13 +22,12 @@ class Signal(object):
         self.period: float = period
         self.x_label: str = x_label
         self.y_label: str = y_label
-        self.math_expr = math_expr
+        self.math_expr: MathExpr = math_expr
         self.preview_span: float = preview_span
         if math_expr is None:
             self.has_math_expr: bool = False
         else:
             self.has_math_expr: bool = True
-
 
     def IsPeriodic(self) -> bool:
         return self.periodic
@@ -26,21 +39,20 @@ class Signal(object):
             x = x % self.period
         return self.math_expr(x)
 
-
     def SetPeriodic(self, periodic: bool):
         self.periodic = periodic
 
-    def GetXData(self) -> list:
+    def GetXData(self, pointsPerPeriod=100) -> list:
         if self.has_math_expr:
             Xdata: list[float] = []
             upper_bound = -1
             if self.periodic:
-                upper_bound = 4*self.period*100
+                upper_bound = 4 * pointsPerPeriod
             else:
-                upper_bound = self.preview_span*100
+                upper_bound = self.preview_span * 100
 
             for i in range(0, int(upper_bound)):
-                Xdata.append(i/100)
+                Xdata.append(i * self.period / pointsPerPeriod)
             return Xdata
         else:
             return self.Xdata
@@ -54,24 +66,32 @@ class Signal(object):
             YData.append(self.EvaluateMath(point))
         return YData
 
-    def GetData(self):
+    def GetData(self, pointsPerPeriod=100):
         if not self.has_math_expr:
             return self.Xdata, self.Ydata
         else:
-            x_data = self.GetXData()
+            x_data = self.GetXData(pointsPerPeriod)
             y_data = self.EvaluatePoints(x_data)
             return x_data, y_data
 
-
-
     def ShowPreview(self, width, height):
-        with img.plot(label=self.name, tag=self.name, width=width, height=height,
+        with img.item_handler_registry() as handler:
+            img.add_item_double_clicked_handler(callback=on_double_click, user_data=self)
+
+        text_id = img.add_text(self.name)
+        img.bind_item_handler_registry(text_id, handler)
+
+        with img.plot(tag=self.name, width=width, height=height,
                       no_mouse_pos=True,
                       no_box_select=True,
                       no_menus=True):
             img.add_plot_legend()
 
             img.add_plot_axis(img.mvXAxis, label="x", no_label=True, no_tick_marks=True, no_tick_labels=True)
-            img.add_plot_axis(img.mvYAxis, label="y", tag=str("y_axis"+self.name), no_label=True, no_tick_marks=True, no_tick_labels=True)
+            img.add_plot_axis(img.mvYAxis, label="y", tag=str("y_axis" + self.name), no_label=True, no_tick_marks=True,
+                              no_tick_labels=True)
             xdata, ydata = self.GetData()
-            img.add_line_series(xdata, ydata, parent=str("y_axis"+self.name))
+            img.add_line_series(xdata, ydata, parent=str("y_axis" + self.name))
+
+def on_double_click(sender, data, user_data):
+    print("Renaming Functionalities: " + str(user_data.name))
