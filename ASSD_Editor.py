@@ -3,6 +3,7 @@ from Tool import *
 from Tools.plot_tool import *
 from Tools.sample_tool import *
 from Tools.fourier_tool import *
+from Tools.transfer_tool import *
 from Signal import *
 
 
@@ -48,6 +49,8 @@ class ASSDEditor(object):
                                       callback=lambda: self.tool_array.append(SampleTool(self, self.GetNewToolUUID())))
                     img.add_menu_item(label="Fourier Tool",
                                       callback=lambda: self.tool_array.append(FourierTool(self, self.GetNewToolUUID())))
+                    img.add_menu_item(label="Transfer Tool",
+                                      callback=lambda: self.tool_array.append(TransferTool(self, self.GetNewToolUUID())))
 
             with img.group(horizontal=True):
                 with img.child_window(width=300, resizable_x=True, label="SignalWindow", tag="SignalWindow"):
