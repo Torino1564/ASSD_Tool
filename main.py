@@ -1,62 +1,73 @@
 import dearpygui.dearpygui as img
 import ASSD_Editor as editor
+import math
 import dearpygui.demo
+import numpy as np
 from Signal import *
 import PlotTool.plot_tool as plt_tool
-from math import sin
-from math import sqrt
-from math import exp
+from scipy.signal import ellip, filtfilt
+
 
 def save_callback():
     print("Save Clicked")
 
 
+#SIGNAL 1
+
+freq = 400
+fs = 200*freq  # Hz
+N = 50
+t = np.linspace(0, N*(1/freq), math.floor(N*(fs/freq)), endpoint=False)
+signal1 = 0.5 + 0.5 * np.sin(2 * np.pi * freq * t)
+
+#FAAs
+
+# Filter specs
+cutoff = 200   # Hz
+rp = 1         # passband ripple (dB)
+rs = 40        # stopband attenuation (dB)
+order = 5
+
+# Design digital filter using actual frequency (not normalized)
+b, a = ellip(order, rp, rs, cutoff, btype='low', fs=fs)
+
+filtered_signal = filtfilt(b, a, signal1).copy()
+
+# Start GUI
 img.create_context()
-img.create_viewport()
+img.create_viewport(title='Signal Viewer', width=800, height=600)
+
+def update_y_scale(sender, app_data, user_data):
+    """Callback to update Y-axis scale based on slider value"""
+    y_axis = user_data
+    scale = app_data
+    img.set_axis_limits(y_axis, 0, scale)
+
+def update_x_scale(sender, app_data, user_data):
+    """Callback to update X-axis scale based on slider value"""
+    x_axis = user_data
+    scale = app_data
+    img.set_axis_limits(x_axis, 0, scale)
+
+#Change
+
+with img.window(label="Signal Display", width=780, height=580):
+    with img.plot(label="Signal Plot", height=400, width=750):
+        img.add_plot_axis(img.mvXAxis, label="Time (s)")
+        x_axis = img.add_plot_axis(img.mvXAxis, label="Time")
+        y_axis = img.add_plot_axis(img.mvYAxis, label="Amplitude")
+
+        img.add_line_series(t, signal1, label="Original Signal", parent=y_axis)
+        img.add_line_series(t, filtered_signal, label="Filtered Signal", parent=y_axis)
+
+    img.add_slider_float(label="Y-Axis Scale", default_value=1.0, min_value=0.1, max_value=2.0,
+                         callback=update_y_scale, user_data=y_axis)
+    img.add_slider_float(label="X-Axis Scale", default_value=1.0, min_value=(1/freq), max_value=(N/freq),
+                         callback=update_x_scale, user_data=x_axis)
+
+
+
 img.setup_dearpygui()
-
-editor = editor.ASSDEditor()
-
-sindatax = []
-sindatay = []
-
-for i in range(0, 500):
-    sindatax.append(i / 1000)
-    sindatay.append(0.5 + 0.5 * sin(50 * i / 1000))
-
-editor.signal_array.append(Signal(name="Test Signal", Xdata=sindatax, Ydata=sindatay))
-
-sqrtdatax = []
-sqrtdatay = []
-
-for i in range(0, 500):
-    sqrtdatax.append(i / 1000)
-    sqrtdatay.append(0.5 + 0.5 * sqrt(50 * i / 1000))
-
-editor.signal_array.append(
-    Signal(name="Test Signal 2", Xdata=sqrtdatax, Ydata=sqrtdatay))
-
-editor.signal_array.append(Signal(name="Test Signal 3", math_expr=lambda x: exp(3*x), periodic=True, period=10, x_label="w", y_label="V"))
-
-editor.Run()
-
-
-# dearpygui.demo.show_demo()
-
-def update_plot_size(sender, data):
-    # Get dimensions of the window
-    width, height = img.get_item_rect_size("SignalWindow")
-
-    for signal in editor.signal_array:
-        # Apply the dimensions to the plot
-        img.set_item_width(signal.name, width)
-        img.set_item_height(signal.name, width * 0.6)
-
-    img.set_frame_callback(img.get_frame_count() + 10, update_plot_size)
-
-
-img.set_frame_callback(img.get_frame_count() + 1, update_plot_size)
-img.set_primary_window("Main Window", True)
 img.show_viewport()
 img.start_dearpygui()
 img.destroy_context()
