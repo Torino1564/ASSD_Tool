@@ -10,13 +10,13 @@ class FourierTool(Tool):
 
     def Run(self):
 
-        with img.plot(label="Señal en el Tiempo", width=-1, height=200, parent=self.tab):
+        with img.plot(label="Señal en el Tiempo", width=-1, height=300, parent=self.tab):
             img.add_plot_legend()
             xt = img.add_plot_axis(img.mvXAxis)
             yt = img.add_plot_axis(img.mvYAxis)
             self.serie_time = img.add_line_series([], [], parent=yt)
 
-        with img.plot(label="FFT centrada", width=-1, height=200, parent=self.tab):
+        with img.plot(label="FFT centrada", width=-1, height=300, parent=self.tab):
             img.add_plot_legend()
             self.xf = img.add_plot_axis(img.mvXAxis, label="Frecuencia [Hz]")
             self.yf = img.add_plot_axis(img.mvYAxis, label="Amplitud")
