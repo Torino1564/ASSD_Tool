@@ -4,7 +4,6 @@ from scipy import signal as sg
 from sympy import *
 from Tools.fourier_tool import FourierTool
 import numpy as np
-import dearpygui.dearpygui as img
 
 from Signal import MathExpr
 from Tool import *

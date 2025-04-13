@@ -1,13 +1,7 @@
-import dearpygui.dearpygui as img
 import ASSD_Editor as editor
-import dearpygui.demo
 from Signal import *
-import Tools.plot_tool as plt_tool
-from math import sin
-from math import sqrt
-from math import exp
-import numpy as np
 
+import dearpygui.demo as demo
 
 def save_callback():
     print("Save Clicked")
@@ -20,6 +14,8 @@ img.maximize_viewport()
 
 editor = editor.ASSDEditor()
 editor.Run()
+
+demo.show_demo()
 
 img.set_primary_window("Main Window", True)
 img.show_viewport()
