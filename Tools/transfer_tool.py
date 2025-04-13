@@ -1,18 +1,29 @@
+import copy
+
 from scipy import signal as sg
 from sympy import *
+from Tools.fourier_tool import FourierTool
 import numpy as np
 import dearpygui.dearpygui as img
+
+from Signal import MathExpr
 from Tool import *
 
 
 
 class TransferTool(Tool):
-    def __init__(self, editor, uuid, signal=None):
+    def __init__(self, editor, uuid, signal=None, tab: bool = True):
         Tool.__init__(self, name="TransferTool", editor=editor, uuid=uuid)
         self.signal = signal
+        self.output_signal = None
         self.transfer_function = None
         self.plot_function = None
-        self.Init(self.Run)
+        self.fourier_tool = FourierTool(editor, uuid, tab=False)
+        self.x4 = None
+        self.y4 = None
+        self.serie_fft = None
+        if tab:
+            self.Init(self.Run)
 
     def Run(self):
 
@@ -105,20 +116,20 @@ class TransferTool(Tool):
 
         with img.plot(label="FFT Señal Filtrada", width=-1, height=200, parent=self.tab) as plot_fft:
             img.add_plot_legend()
-            x4 = img.add_plot_axis(img.mvXAxis, label="Freq [Hz]", log_scale=True)
-            y4 = img.add_plot_axis(img.mvYAxis, label="Amplitude")
-            self.serie_fft = img.add_stem_series([], [], parent=y4)
+            self.x4 = img.add_plot_axis(img.mvXAxis, label="Freq [Hz]", log_scale=True)
+            self.y4 = img.add_plot_axis(img.mvYAxis, label="Amplitude")
+            self.serie_fft = img.add_stem_series([], [], parent=self.y4)
 
         self.CalculateFilter()
 
     def paste_signal(self):
         self.signal = self.editor.selected_signal
         if self.signal is None:
-            raise AssertionError("No signal copied")
+            return
 
         x, y = self.signal.GetData(img.get_value(self.points_per_period_tag))
         img.set_value(self.serie_orig, [list(x), list(y)])
-        self.ApplyTransference()
+        self.Kernel()
 
     def CalculateFilter(self):
 
@@ -141,46 +152,49 @@ class TransferTool(Tool):
         self.transfer_function = sg.TransferFunction(b, a)
 
         self.ShowTransfer()
-        self.ApplyTransference()
+        self.Kernel()
 
 
     def ShowTransfer(self):
         # H(f)
-        freq_pos = np.logspace(np.log10(1), np.log10(1000000), 20000)
+        freq_pos = np.logspace(np.log10(img.get_value(self.fc) / 1000), np.log10(img.get_value(self.fc) * 1000), 20000)
         w, h = sg.freqs(self.transfer_function.num, self.transfer_function.den, worN=2 * np.pi * freq_pos)
         mag_db = 20 * np.log10(np.abs(h))
 
         img.set_value(self.serie_hf, [list(w / (2 * np.pi)), list(mag_db)])
 
 
-    def ApplyTransference(self, sender=None, app_data=None, user_data=None):
+    def Kernel(self, sender=None, app_data=None, user_data=None):
         if self.signal is None:
             return
+        self.output_signal = copy.copy(self.signal)
 
-        x, y = self.signal.GetData(img.get_value(self.points_per_period_tag))
-        fs = 1 / (x[1] - x[0])
-        N = len(y)
-        freq = np.fft.fftfreq(N, d=1/fs)
+        class FilteredMathExpr(MathExpr):
+            def __init__(self, parent, transfer_function):
+                super().__init__()
+                self.parent = parent
+                self.transfer_function = transfer_function
 
-        freq_pos = np.logspace(np.log10(1), np.log10(1000000), 20000)
-        w, h = sg.freqs(self.transfer_function.num, self.transfer_function.den)
+            def EvaluatePoints(self, xValues: list[float]):
+                original_y_values = self.parent.EvaluatePoints(xValues)
+                Xf = np.fft.fft(original_y_values)
+                fs = 1 / (xValues[1] - xValues[0])
+                N = len(original_y_values)
+                freq = np.fft.fftfreq(N, d=1 / fs)
+                w, h = sg.freqs(self.transfer_function.num, self.transfer_function.den)
+                Hf_interp = np.interp(np.abs(freq), w / (2 * np.pi), np.abs(h))
+                Yf = Xf * Hf_interp
+                return np.fft.ifft(Yf).real
 
-        # Filtrado en frecuencia
-        Xf = np.fft.fft(y)
-        Hf_interp = np.interp(np.abs(freq), w / (2 * np.pi), np.abs(h))
-        Yf = Xf * Hf_interp
-        yt = np.fft.ifft(Yf).real
+
+        self.output_signal.math_expr = FilteredMathExpr(self.signal, self.transfer_function)
+        x, y = self.output_signal.GetData(img.get_value(self.points_per_period_tag))
+        img.set_value(self.serie_filt, [list(x), list(y)])
 
         # FFT
-        freq_full = np.fft.fftfreq(N, d=1/fs)
-
-        img.set_value(self.serie_filt, [list(x), list(yt)])
-        magdB = []
-        for y in np.abs(Yf):
-            if y != 0:
-                magdB.append(20 * np.log10(y))
-            else:
-                magdB.append(0)
-
-
-        img.set_value(self.serie_fft, [list(freq_full), magdB])
+        self.fourier_tool.xf = self.x4
+        self.fourier_tool.yf = self.y4
+        self.fourier_tool.serie_fft = self.serie_fft
+        self.fourier_tool.ppp_tag = self.points_per_period_tag
+        self.fourier_tool.signal = self.output_signal
+        self.fourier_tool.Kernel()

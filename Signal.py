@@ -1,12 +1,19 @@
 import dearpygui.dearpygui as img
 
 
-class MathExpr():
-    def __init__(self, math_expression):
+class MathExpr:
+    def __init__(self, math_expression = None, period = None):
         self.math_expression = math_expression
-
+        self.period = period
     def __call__(self, x: float):
         return self.math_expression(x)
+
+    def EvaluatePoints(self, xValues: list[float]):
+        yData = []
+        for x in xValues:
+            x = x % self.period
+            yData.append(self.math_expression(x))
+        return yData
 
     def Get(self):
         return self.math_expression
@@ -24,6 +31,7 @@ class Signal(object):
         self.x_label: str = x_label
         self.y_label: str = y_label
         self.math_expr: MathExpr = math_expr
+        self.math_expr.period = self.period
         self.preview_span: float = preview_span
         if period is not None:
             self.periodic = True
@@ -64,17 +72,14 @@ class Signal(object):
         return self.Ydata
 
     def EvaluatePoints(self, x_data: list[float]):
-        YData: list[float] = []
-        for point in x_data:
-            YData.append(self.EvaluateMath(point))
-        return YData
+        return self.math_expr.EvaluatePoints(x_data)
 
     def GetData(self, pointsPerPeriod=100):
         if not self.has_math_expr:
             return self.Xdata, self.Ydata
         else:
             x_data = self.GetXData(pointsPerPeriod)
-            y_data = self.EvaluatePoints(x_data)
+            y_data = self.math_expr.EvaluatePoints(x_data)
             return x_data, y_data
 
     def ShowPreview(self, width, height, window_tag):

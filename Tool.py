@@ -10,3 +10,6 @@ class Tool(object):
     def Init(self, run):
         with img.tab(label=self.name, tag=str(self.name + str(self.toolId)), parent=self.editor.tab_bar) as self.tab:
             run()
+
+    def Kernel(self):
+        print("Base Tool Kernel")

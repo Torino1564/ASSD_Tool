@@ -5,11 +5,12 @@ import copy
 import math
 
 class SampleTool(Tool):
-    def __init__(self, editor, uuid, signal=None):
+    def __init__(self, editor, uuid, signal=None, tab: bool = True):
         Tool.__init__(self, name="SampleTool", editor=editor, uuid=uuid)
         self.signal = signal
         self.sampled_signal = None
-        self.Init(self.Run)
+        if tab:
+            self.Init(self.Run)
 
     def Run(self):
         def update_plot1_components(plot_tag, y_axis_tag, x_axis_tag, series_tag):
