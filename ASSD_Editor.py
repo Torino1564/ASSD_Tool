@@ -4,6 +4,7 @@ from Tools.plot_tool import *
 from Tools.sample_tool import *
 from Tools.fourier_tool import *
 from Tools.transfer_tool import *
+from Tools.generator_tool import *
 from Signal import *
 
 
@@ -18,6 +19,18 @@ def select_signal(sender, data, user_data: Data):
     print(f"Copied: {str(user_data.signal.name)}")
 
 
+def update_plot_size(editor):
+    # Get dimensions of the window
+    width, height = img.get_item_rect_size("SignalWindow")
+
+    for signal in editor.signal_array:
+        # Apply the dimensions to the plot
+        img.set_item_width(str(signal.uuid), width)
+        img.set_item_height(str(signal.uuid), width * 0.6)
+
+    img.set_frame_callback(img.get_frame_count() + 10, lambda: update_plot_size(editor))
+
+
 class ASSDEditor(object):
     def __init__(self):
         self.signal_array: list[Signal] = []
@@ -25,17 +38,28 @@ class ASSDEditor(object):
         self.selected_signal = None
         self.tool_array: list[Tool] = []
         self.tool_uuid = [0]
+        self.signal_uuid = [0]
         self.tab_bar = None
+        self.signal_window_tag = None
+
+        img.set_frame_callback(img.get_frame_count() + 10, lambda: update_plot_size(self))
 
     def GetNewToolUUID(self):
         self.tool_uuid[0] += 1
         return self.tool_uuid[0]
 
+    def GetNewSignalUUID(self):
+        self.signal_uuid[0] += 1
+        return self.signal_uuid[0]
+
     def AddSignal(self, signal: Signal):
-        tag = img.add_button(label="Copy", tag=str("Copy" + str(signal.name)), parent="SignalWindow", width=40)
+        signal.uuid = self.GetNewSignalUUID()
+        self.signal_array.append(signal)
+        tag = img.add_button(label="Copy", parent="SignalWindow", width=40)
         img.set_item_callback(tag, select_signal)
         img.set_item_user_data(tag, Data(editor=self, signal=signal))
-        signal.ShowPreview(100, 100)
+        signal.ShowPreview(100, 100, self.signal_window_tag)
+        img.add_separator(parent=self.signal_window_tag)
 
     def Run(self):
         with img.window(label="Main Window", tag="Main Window", no_title_bar=True, no_resize=False):
@@ -51,13 +75,15 @@ class ASSDEditor(object):
                                       callback=lambda: self.tool_array.append(FourierTool(self, self.GetNewToolUUID())))
                     img.add_menu_item(label="Transfer Tool",
                                       callback=lambda: self.tool_array.append(TransferTool(self, self.GetNewToolUUID())))
+                    img.add_menu_item(label="Generator Tool",
+                                      callback=lambda: self.tool_array.append(
+                                          GeneratorTool(self, self.GetNewToolUUID())))
 
             with img.group(horizontal=True):
-                with img.child_window(width=300, resizable_x=True, label="SignalWindow", tag="SignalWindow"):
+                with img.child_window(width=300, resizable_x=True, label="SignalWindow", tag="SignalWindow") as self.signal_window_tag:
                     img.add_text("Signals")
-                    for signal in self.signal_array:
-                        self.AddSignal(signal)
+                    img.add_separator()
 
                 with img.child_window(autosize_x=True):
                     with img.tab_bar() as self.tab_bar:
-                        img.add_tab(label="Default Tab")
+                        img.add_tab(label="ASSD Tool")

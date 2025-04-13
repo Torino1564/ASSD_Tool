@@ -13,9 +13,10 @@ class MathExpr():
 
 
 class Signal(object):
-    def __init__(self, name, Xdata=None, Ydata=None, math_expr: MathExpr = None, x_label: str = "x", y_label: str = "y",
-                 periodic: bool = False, period: float = 0, preview_span: float = 100):
+    def __init__(self, name, uuid = None, Xdata=None, Ydata=None, math_expr: MathExpr = None, x_label: str = "x", y_label: str = "y",
+                 periodic: bool = False, period: float = None, preview_span: float = 100):
         self.name = name
+        self.uuid = uuid
         self.Xdata = Xdata
         self.Ydata = Ydata
         self.periodic: bool = periodic
@@ -24,6 +25,8 @@ class Signal(object):
         self.y_label: str = y_label
         self.math_expr: MathExpr = math_expr
         self.preview_span: float = preview_span
+        if period is not None:
+            self.periodic = True
         if math_expr is None:
             self.has_math_expr: bool = False
         else:
@@ -74,24 +77,24 @@ class Signal(object):
             y_data = self.EvaluatePoints(x_data)
             return x_data, y_data
 
-    def ShowPreview(self, width, height):
+    def ShowPreview(self, width, height, window_tag):
         with img.item_handler_registry() as handler:
             img.add_item_double_clicked_handler(callback=on_double_click, user_data=self)
 
-        text_id = img.add_text(self.name)
+        text_id = img.add_text(self.name, parent=window_tag)
         img.bind_item_handler_registry(text_id, handler)
 
-        with img.plot(tag=self.name, width=width, height=height,
+        with img.plot(tag=str(self.uuid), width=width, height=height,
                       no_mouse_pos=True,
                       no_box_select=True,
-                      no_menus=True):
+                      no_menus=True, parent=window_tag):
             img.add_plot_legend()
 
             img.add_plot_axis(img.mvXAxis, label="x", no_label=True, no_tick_marks=True, no_tick_labels=True)
-            img.add_plot_axis(img.mvYAxis, label="y", tag=str("y_axis" + self.name), no_label=True, no_tick_marks=True,
+            y_axis_tag = img.add_plot_axis(img.mvYAxis, label="y", no_label=True, no_tick_marks=True,
                               no_tick_labels=True)
             xdata, ydata = self.GetData()
-            img.add_line_series(xdata, ydata, parent=str("y_axis" + self.name))
+            img.add_line_series(xdata, ydata, parent=y_axis_tag)
 
 def on_double_click(sender, data, user_data):
     print("Renaming Functionalities: " + str(user_data.name))
