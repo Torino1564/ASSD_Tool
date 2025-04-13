@@ -32,7 +32,6 @@ class GeneratorTool(Tool):
 
         offset_mode = "offset"
 
-        # Themes for active/inactive
         with img.theme() as default_theme:
             with img.theme_component(img.mvButton):
                 img.add_theme_color(img.mvThemeCol_Button, (70, 70, 70))  # dark gray
