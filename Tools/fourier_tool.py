@@ -5,10 +5,13 @@ from Tool import *
 class FourierTool(Tool):
     def __init__(self, editor, uuid):
         Tool.__init__(self, name="FourierTool", editor=editor, uuid=uuid)
-        self.Init(self.Run)
+        self.ppp_tag = None
         self.signal = None
 
+        self.Init(self.Run)
+
     def Run(self):
+        self.ppp_tag = img.add_input_float(label="Points per period", min_value=0, default_value=1000, step=100)
 
         with img.plot(label="Señal en el Tiempo", width=-1, height=300, parent=self.tab):
             img.add_plot_legend()
@@ -30,7 +33,7 @@ class FourierTool(Tool):
         if self.signal is None:
             raise AssertionError("No signal copied")
 
-        x, y = self.signal.GetData()
+        x, y = self.signal.GetData(img.get_value(self.ppp_tag))
         img.set_value(self.serie_time, [list(x), list(y)])
         self.apply_fft()
 
@@ -38,7 +41,7 @@ class FourierTool(Tool):
         if self.signal is None:
             return
 
-        x, y = self.signal.GetData()
+        x, y = self.signal.GetData(self.ppp_tag)
         fs = 1 / (x[1] - x[0])
         Nfft = 2**18
 
