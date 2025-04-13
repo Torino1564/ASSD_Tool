@@ -10,10 +10,10 @@ import numpy as np
 def save_callback():
     print("Save Clicked")
 
-
 img.create_context()
-img.create_viewport()
+img.create_viewport(title="ASSD Tool", width=800, height=600, x_pos=0, y_pos=0)
 img.setup_dearpygui()
+img.maximize_viewport()
 
 editor = editor.ASSDEditor()
 editor.Run()

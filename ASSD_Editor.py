@@ -61,23 +61,23 @@ class ASSDEditor(object):
         signal.ShowPreview(100, 100, self.signal_window_tag)
         img.add_separator(parent=self.signal_window_tag)
 
+
+    def AddTool(self, toolType):
+        new_tool = toolType(self, self.GetNewToolUUID())
+        img.set_value(self.tab_bar, new_tool.tab)
+        self.tool_array.append(new_tool)
+
     def Run(self):
         with img.window(label="Main Window", tag="Main Window", no_title_bar=True, no_resize=False):
             with img.menu_bar():
                 with img.menu(label="Tools"):
                     img.add_text("Available Tools")
                     img.add_separator()
-                    img.add_menu_item(label="Plot Tool",
-                                      callback=lambda: self.tool_array.append(PlotTool(self, self.GetNewToolUUID())))
-                    img.add_menu_item(label="Sample Tool",
-                                      callback=lambda: self.tool_array.append(SampleTool(self, self.GetNewToolUUID())))
-                    img.add_menu_item(label="Fourier Tool",
-                                      callback=lambda: self.tool_array.append(FourierTool(self, self.GetNewToolUUID())))
-                    img.add_menu_item(label="Transfer Tool",
-                                      callback=lambda: self.tool_array.append(TransferTool(self, self.GetNewToolUUID())))
-                    img.add_menu_item(label="Generator Tool",
-                                      callback=lambda: self.tool_array.append(
-                                          GeneratorTool(self, self.GetNewToolUUID())))
+                    img.add_menu_item(label="Plot Tool", callback=lambda: self.AddTool(PlotTool))
+                    img.add_menu_item(label="Sample Tool", callback=lambda: self.AddTool(SampleTool))
+                    img.add_menu_item(label="Fourier Tool", callback=lambda: self.AddTool(FourierTool))
+                    img.add_menu_item(label="Transfer Tool", callback=lambda: self.AddTool(TransferTool))
+                    img.add_menu_item(label="Generator Tool", callback=lambda: self.AddTool(GeneratorTool))
 
             with img.group(horizontal=True):
                 with img.child_window(width=300, resizable_x=True, label="SignalWindow", tag="SignalWindow") as self.signal_window_tag:
