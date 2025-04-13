@@ -107,7 +107,7 @@ class TransferTool(Tool):
             img.add_plot_legend()
             x4 = img.add_plot_axis(img.mvXAxis, label="Freq [Hz]", log_scale=True)
             y4 = img.add_plot_axis(img.mvYAxis, label="Amplitude")
-            self.serie_fft = img.add_line_series([], [], parent=y4)
+            self.serie_fft = img.add_stem_series([], [], parent=y4)
 
         self.CalculateFilter()
 
@@ -116,7 +116,7 @@ class TransferTool(Tool):
         if self.signal is None:
             raise AssertionError("No signal copied")
 
-        x, y = self.signal.GetData()
+        x, y = self.signal.GetData(img.get_value(self.points_per_period_tag))
         img.set_value(self.serie_orig, [list(x), list(y)])
         self.ApplyTransference()
 
@@ -163,7 +163,7 @@ class TransferTool(Tool):
         freq = np.fft.fftfreq(N, d=1/fs)
 
         freq_pos = np.logspace(np.log10(1), np.log10(1000000), 20000)
-        w, h = sg.freqs(self.transfer_function.num, self.transfer_function.den, worN=2 * np.pi * freq_pos)
+        w, h = sg.freqs(self.transfer_function.num, self.transfer_function.den)
 
         # Filtrado en frecuencia
         Xf = np.fft.fft(y)

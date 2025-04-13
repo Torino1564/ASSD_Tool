@@ -23,7 +23,7 @@ class FourierTool(Tool):
             img.add_plot_legend()
             self.xf = img.add_plot_axis(img.mvXAxis, label="Frecuencia [Hz]")
             self.yf = img.add_plot_axis(img.mvYAxis, label="Amplitud")
-            self.serie_fft = img.add_line_series([], [], parent=self.yf)
+            self.serie_fft = img.add_stem_series([], [], parent=self.yf)
 
             img.add_button(label="Pegar Señal", callback=self.paste_signal, parent=self.tab)
 
@@ -41,12 +41,11 @@ class FourierTool(Tool):
         if self.signal is None:
             return
 
-        x, y = self.signal.GetData(self.ppp_tag)
+        x, y = self.signal.GetData(img.get_value(self.ppp_tag))
         fs = 1 / (x[1] - x[0])
-        Nfft = 2**18
 
-        Xf = np.fft.fft(y, Nfft)
-        freq = np.fft.fftfreq(Nfft, d=1/fs)
+        Xf = np.fft.fft(y)
+        freq = np.fft.fftfreq(len(y), d=1/fs)
         Xf = np.fft.fftshift(Xf)
         freq = np.fft.fftshift(freq)
 

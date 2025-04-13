@@ -21,8 +21,6 @@ img.maximize_viewport()
 editor = editor.ASSDEditor()
 editor.Run()
 
-editor.AddSignal(Signal(name="Example", math_expr=MathExpr(lambda x: sin(2*np.pi*x)), periodic=True, period=1, x_label="t", y_label="V"))
-
 img.set_primary_window("Main Window", True)
 img.show_viewport()
 img.start_dearpygui()
