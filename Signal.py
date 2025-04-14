@@ -10,9 +10,14 @@ class MathExpr:
 
     def EvaluatePoints(self, xValues: list[float]):
         yData = []
-        for x in xValues:
-            x = x % self.period
-            yData.append(self.math_expression(x))
+        if hasattr(self.math_expression, 'EvaluatePoints') and callable(
+                getattr(self.math_expression, 'EvaluatePoints')):
+            y_data = self.math_expression.EvaluatePoints(xValues)
+        else:
+            y_data = []
+            for x in xValues:
+                x = x % self.period
+                yData.append(self.math_expression(x))
         return yData
 
     def Get(self):
@@ -79,7 +84,12 @@ class Signal(object):
             return self.Xdata, self.Ydata
         else:
             x_data = self.GetXData(pointsPerPeriod)
-            y_data = self.math_expr.EvaluatePoints(x_data)
+            if hasattr(self.math_expr, 'EvaluatePoints') and callable(getattr(self.math_expr, 'EvaluatePoints')):
+                y_data = self.math_expr.EvaluatePoints(x_data)
+            else:
+                y_data = []
+                for x in x_data:
+                    y_data.append(self.EvaluateMath(x))
             return x_data, y_data
 
     def ShowPreview(self, width, height, window_tag):
