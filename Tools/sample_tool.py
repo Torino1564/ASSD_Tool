@@ -75,7 +75,7 @@ class SampleTool(Tool):
 
                         def __call__(self, x: float):
                             period = 1/self.sample_freq
-                            delta_width = period * 0.05
+                            delta_width = period * 0.01
                             nearest_sample_point = round(x / period)
                             if abs(nearest_sample_point * period - x) < delta_width:
                                 # the point is in sample range
@@ -103,7 +103,7 @@ class SampleTool(Tool):
                                 y_data = []
                                 for x in xValues:
                                     x = x % self.period
-                                    yData.append(self.math_expression(x))
+                                    yData.append(self.__call__(x))
                             return yData
 
                     self.sampled_signal.math_expr = IdealSampleMathExpr(
@@ -112,9 +112,10 @@ class SampleTool(Tool):
                         signal=self.signal,
                         period=self.signal.period
                     )
+
                     series_tag = stem_series_tag
-                    img.show_item(stem_series_tag)
                     img.hide_item(line_series_tag)
+                    img.show_item(stem_series_tag)
 
                 if sample_type == "Instant":
                     class InstantSampleMathExpr(MathExpr):
@@ -167,7 +168,7 @@ class SampleTool(Tool):
                                 yData = []
                                 for x in xValues:
                                     x = x % self.period
-                                    yData.append(self.math_expression(x))
+                                    yData.append(self.__call__(x))
                             return yData
 
                     self.sampled_signal.math_expr = InstantSampleMathExpr(math_expr=self.signal.math_expr.Get(),
@@ -176,8 +177,8 @@ class SampleTool(Tool):
                                                                           sample_freq=sample_freq,
                                                                           period=self.signal.period)
                     series_tag = line_series_tag
-                    img.hide_item(stem_series_tag)
                     img.show_item(line_series_tag)
+                    img.hide_item(stem_series_tag)
 
                 if sample_type == "Natural":
                     class NaturalSampleMathExpr(MathExpr):
@@ -218,7 +219,7 @@ class SampleTool(Tool):
                                 yData = []
                                 for x in xValues:
                                     x = x % self.period
-                                    yData.append(self.math_expression(x))
+                                    yData.append(self.__call__(x))
                             return yData
 
 
@@ -228,8 +229,8 @@ class SampleTool(Tool):
                                                                           sample_freq=sample_freq,
                                                                           period = self.signal.period)
                     series_tag = line_series_tag
-                    img.hide_item(stem_series_tag)
                     img.show_item(line_series_tag)
+                    img.hide_item(stem_series_tag)
 
                 update_plot2_components(plot_tag, y_axis_tag, x_axis_tag, series_tag, points_per_period)
 
@@ -280,5 +281,7 @@ class SampleTool(Tool):
             line_series_tag=line_tag,
             stem_series_tag = stem_tag
         ))
+
+        img.add_button(label="Save Generated Signal", callback=lambda: self.editor.AddSignal(self.sampled_signal))
 
         warning_tag = img.add_text("Warning: The sample period is similar to the input signal data interval. Please consider increasing the points per period", color=(255, 165, 0), show=False)
