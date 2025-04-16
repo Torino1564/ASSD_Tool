@@ -67,6 +67,7 @@ class TransferTool(Tool):
         with img.group(horizontal=False, parent=self.tab,show=False) as filter_group_tag:
             self.fc = img.add_input_float(label="Cutoff Frequency [Hz]", default_value=1000, min_value=1, callback=lambda: self.CalculateFilter())
             self.order = img.add_input_int(label="Order", default_value=2, min_value=1, callback=lambda: self.CalculateFilter())
+            self.atenuacion = img.add_input_float(label="Atenuación [dB]", default_value=20.0, min_value=0.1, callback=lambda: self.CalculateFilter())
             tipos = ["butter", "bessel", "cheby1", "cheby2", "ellip"]
             self.tipo_filtro = img.add_combo(tipos, label="Filter Type", default_value="butter", callback=lambda: self.CalculateFilter())
 
@@ -135,6 +136,7 @@ class TransferTool(Tool):
         tipo = img.get_value(self.tipo_filtro)
         orden = img.get_value(self.order)
         fcorte = img.get_value(self.fc)
+        atenuacion = img.get_value(self.atenuacion) 
         b = None
         a = None
         if tipo == "butter":
@@ -142,11 +144,11 @@ class TransferTool(Tool):
         elif tipo == "bessel":
             b, a = sg.bessel(orden, 2 * np.pi * fcorte, btype='low', analog=True, norm='phase')
         elif tipo == "cheby1":
-            b, a = sg.cheby1(orden, 1, 2 * np.pi * fcorte, btype='low', analog=True)
+            b, a = sg.cheby1(orden, atenuacion, 2 * np.pi * fcorte, btype='low', analog=True)
         elif tipo == "cheby2":
-            b, a = sg.cheby2(orden, 20, 2 * np.pi * fcorte, btype='low', analog=True)
+            b, a = sg.cheby2(orden, atenuacion, 2 * np.pi * fcorte, btype='low', analog=True)
         elif tipo == "ellip":
-            b, a = sg.ellip(orden, 1, 20, 2 * np.pi * fcorte, btype='low', analog=True)
+            b, a = sg.ellip(orden, 1, atenuacion, 2 * np.pi * fcorte, btype='low', analog=True)
 
         self.transfer_function = sg.TransferFunction(b, a)
 
