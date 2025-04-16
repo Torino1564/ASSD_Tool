@@ -20,3 +20,12 @@ def norm_triang(x):
         return 2*x - 0.5
     else:
         return 1.5 - 2*x
+    
+def norm_exp(x):
+    x = x % 1
+    x = x - 1/2
+    if x < 0:
+        return math.exp(5*x)
+    else:
+        return math.exp(-5*x)
+    

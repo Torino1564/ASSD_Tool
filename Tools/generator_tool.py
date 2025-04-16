@@ -117,6 +117,8 @@ class GeneratorTool(Tool):
                     base_expr = norm_sqr
                 case "triangular":
                     base_expr = norm_triang
+                case "exp":
+                    base_expr = norm_exp
 
             # denormalize:
             offset = img.get_value(offset_tag)
