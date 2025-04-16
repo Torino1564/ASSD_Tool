@@ -9,7 +9,6 @@ from Signal import MathExpr
 from Tool import *
 
 
-
 class TransferTool(Tool):
     def __init__(self, editor, uuid, signal=None, tab: bool = True):
         Tool.__init__(self, name="TransferTool", editor=editor, uuid=uuid)
@@ -64,7 +63,7 @@ class TransferTool(Tool):
         img.bind_item_theme(tf_button_tag, active_theme)
         img.bind_item_theme(filter_button_tag, default_theme)
 
-        with img.group(horizontal=False, parent=self.tab,show=False) as filter_group_tag:
+        with img.group(horizontal=False, parent=self.tab, show=False) as filter_group_tag:
             self.fc = img.add_input_float(label="Cutoff Frequency [Hz]", default_value=1000, min_value=1, callback=lambda: self.CalculateFilter())
             self.order = img.add_input_int(label="Order", default_value=2, min_value=1, callback=lambda: self.CalculateFilter())
             self.atenuacion = img.add_input_float(label="Atenuación [dB]", default_value=20.0, min_value=0.1, callback=lambda: self.CalculateFilter())
@@ -87,13 +86,13 @@ class TransferTool(Tool):
             self.ShowTransfer()
             self.ApplyTransference()
 
-
         with img.group(horizontal=False, parent=self.tab) as tf_group_tag:
             numerator_tag = img.add_input_text(label="Numerator")
             denominator_tag = img.add_input_text(label="Denominator")
             img.add_button(label="Calculate Transference", callback=lambda: CalculateTransference())
 
         img.add_button(label="Paste Signal", callback=self.paste_signal)
+        img.add_button(label="Copy Filtered Signal", callback=self.copy_filtered_signal)
 
         # Gráficos
         with img.plot(label="Señal Original", width=-1, height=200, parent=self.tab) as plot_orig:
@@ -131,12 +130,17 @@ class TransferTool(Tool):
         img.set_value(self.serie_orig, [list(x), list(y)])
         self.Kernel()
 
+    def copy_filtered_signal(self, sender=None, app_data=None, user_data=None):
+        if self.output_signal is None:
+            return
+        self.editor.selected_signal = self.output_signal
+
     def CalculateFilter(self):
 
         tipo = img.get_value(self.tipo_filtro)
         orden = img.get_value(self.order)
         fcorte = img.get_value(self.fc)
-        atenuacion = img.get_value(self.atenuacion) 
+        atenuacion = img.get_value(self.atenuacion)
         b = None
         a = None
         if tipo == "butter":
@@ -155,7 +159,6 @@ class TransferTool(Tool):
         self.ShowTransfer()
         self.Kernel()
 
-
     def ShowTransfer(self):
         # H(f)
         freq_pos = np.logspace(np.log10(img.get_value(self.fc) / 1000), np.log10(img.get_value(self.fc) * 1000), 20000)
@@ -163,7 +166,6 @@ class TransferTool(Tool):
         mag_db = 20 * np.log10(np.abs(h))
 
         img.set_value(self.serie_hf, [list(w / (2 * np.pi)), list(mag_db)])
-
 
     def Kernel(self, sender=None, app_data=None, user_data=None):
         if self.signal is None:
@@ -186,7 +188,6 @@ class TransferTool(Tool):
                 Hf_interp = np.interp(np.abs(freq), w / (2 * np.pi), np.abs(h))
                 Yf = Xf * Hf_interp
                 return np.fft.ifft(Yf).real
-
 
         self.output_signal.math_expr = FilteredMathExpr(self.signal, self.transfer_function)
         x, y = self.output_signal.GetData(img.get_value(self.points_per_period_tag))
