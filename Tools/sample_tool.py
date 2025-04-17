@@ -16,7 +16,8 @@ class SampleTool(Tool):
         def update_plot1_components(plot_tag, y_axis_tag, x_axis_tag, series_tag):
             self.signal = self.editor.selected_signal
             if self.signal is None:
-                raise AssertionError("No signal is copied")
+                print("No signal is copied")
+                return
 
             # Update plot title
             img.set_item_label(plot_tag, self.signal.name)
@@ -54,6 +55,7 @@ class SampleTool(Tool):
 
         sample_freq = img.add_input_double(label="Sample Frequency [Fs]", default_value=10000, min_value=0)
         duty_cycle = img.add_input_float(label="Duty Cycle", default_value=50, min_value=0, max_value=100)
+        num_periods = img.add_input_int(label="Num periods", default_value=4, min_value=1)
 
         def sample_signal(sample_type_tag, sample_freq_tag, duty_cycle_tag, plot_tag, y_axis_tag, x_axis_tag, line_series_tag, stem_series_tag):
             # sample logic
@@ -85,29 +87,32 @@ class SampleTool(Tool):
 
                         def EvaluatePoints(self, xValues: list[float]):
                             yData = []
+                            period = 1 / self.sample_freq
+                            delta_width = period * 0.02
+
                             if hasattr(self.math_expression, 'EvaluatePoints') and callable(
                                     getattr(self.math_expression, 'EvaluatePoints')):
-                                period = 1 / self.sample_freq
                                 yData = self.math_expression.EvaluatePoints(xValues)
-                                delta_width = period * 0.05
-
-                                for i in range(len(yData)):
-                                    x = xValues[i]
-                                    nearest_sample_point = round(x / period)
-                                    if abs(nearest_sample_point * period - x) < delta_width:
-                                        # the point is in sample range
-                                        return yData[i]
-                                    else:
-                                        return 0
                             else:
-                                y_data = []
                                 for x in xValues:
                                     x = x % self.period
-                                    yData.append(self.__call__(x))
-                            return yData
+                                    yData.append(self.math_expression(x))
+
+                            final_y_data = []
+
+                            for i in range(len(yData)):
+                                x = xValues[i]
+                                nearest_sample_point = round(x / period)
+                                if abs(nearest_sample_point * period - x) < delta_width:
+                                    # the point is in sample range
+                                    final_y_data.append(yData[i])
+                                else:
+                                    final_y_data.append(0)
+
+                            return final_y_data
 
                     self.sampled_signal.math_expr = IdealSampleMathExpr(
-                        math_expr=self.signal.math_expr.Get(),
+                        math_expr=self.signal.math_expr,
                         sample_freq=sample_freq,
                         signal=self.signal,
                         period=self.signal.period
@@ -146,32 +151,34 @@ class SampleTool(Tool):
 
                         def EvaluatePoints(self, xValues: list[float]):
                             yData = []
+                            period = 1 / self.sample_freq
                             if hasattr(self.math_expression, 'EvaluatePoints') and callable(
                                     getattr(self.math_expression, 'EvaluatePoints')):
-                                period = 1 / self.sample_freq
                                 yData = self.math_expression.EvaluatePoints(xValues)
-                                for i in range(len(yData)):
-                                    x = xValues[i]
-                                    current_period = math.trunc(x / period)
-                                    period_offset = x - current_period * period
-
-                                    if period_offset < (period * self.duty_cycle_percentage):
-                                        # the point is in sample range
-                                        if self.previous_value is None or x - self.previous_value_time_point >= period:
-                                            self.previous_value = yData[i]
-                                            self.previous_value_time_point = x
-                                        return self.previous_value
-                                    else:
-                                        self.previous_value = None
-                                        return 0
                             else:
                                 yData = []
                                 for x in xValues:
                                     x = x % self.period
-                                    yData.append(self.__call__(x))
-                            return yData
+                                    yData.append(self.math_expression(x))
+                            final_y_data = []
+                            for i in range(len(yData)):
+                                x = xValues[i]
+                                current_period = math.trunc(x / period)
+                                period_offset = x - current_period * period
 
-                    self.sampled_signal.math_expr = InstantSampleMathExpr(math_expr=self.signal.math_expr.Get(),
+                                if period_offset < (period * self.duty_cycle_percentage):
+                                    # the point is in sample range
+                                    if self.previous_value is None:
+                                        self.previous_value = yData[i]
+                                        self.previous_value_time_point = x
+                                    final_y_data.append(self.previous_value)
+                                else:
+                                    self.previous_value = None
+                                    final_y_data.append(0)
+
+                            return final_y_data
+
+                    self.sampled_signal.math_expr = InstantSampleMathExpr(math_expr=self.signal.math_expr,
                                                                           signal=self.sampled_signal,
                                                                           duty_cycle_percentage=duty_cycle/100,
                                                                           sample_freq=sample_freq,
@@ -203,27 +210,29 @@ class SampleTool(Tool):
 
                         def EvaluatePoints(self, xValues: list[float]):
                             yData = []
+                            period = 1 / self.sample_freq
                             if hasattr(self.math_expression, 'EvaluatePoints') and callable(
                                     getattr(self.math_expression, 'EvaluatePoints')):
-                                period = 1 / self.sample_freq
                                 yData = self.math_expression.EvaluatePoints(xValues)
-                                for i in range(len(yData)):
-                                    x = xValues[i]
-                                    current_period = math.trunc(x / period)
-                                    period_offset = x - current_period * period
-                                    if period_offset < (period * self.duty_cycle_percentage):
-                                        return yData[i]
-                                    else:
-                                        return 0
                             else:
-                                yData = []
                                 for x in xValues:
                                     x = x % self.period
-                                    yData.append(self.__call__(x))
-                            return yData
+                                    yData.append(self.math_expression(x))
+
+                            final_y_data = []
+
+                            for i in range(len(yData)):
+                                x = xValues[i]
+                                current_period = math.trunc(x / period)
+                                period_offset = x - current_period * period
+                                if period_offset < (period * self.duty_cycle_percentage):
+                                    final_y_data.append(yData[i])
+                                else:
+                                    final_y_data.append(0)
+                            return final_y_data
 
 
-                    self.sampled_signal.math_expr = NaturalSampleMathExpr(math_expr=self.signal.math_expr.Get(),
+                    self.sampled_signal.math_expr = NaturalSampleMathExpr(math_expr=self.signal.math_expr,
                                                                           signal=self.sampled_signal,
                                                                           duty_cycle_percentage=duty_cycle/100,
                                                                           sample_freq=sample_freq,
@@ -253,7 +262,7 @@ class SampleTool(Tool):
             img.set_item_label(y_axis_tag, signal.y_label)
 
             # Update line series data
-            xdata, ydata = signal.GetData(img.get_value(points_per_period_tag))
+            xdata, ydata = signal.GetData(img.get_value(points_per_period_tag), img.get_value(num_periods))
             img.set_value(series_tag, [xdata, ydata])
 
 

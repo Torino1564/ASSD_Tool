@@ -15,8 +15,6 @@ img.maximize_viewport()
 editor = editor.ASSDEditor()
 editor.Run()
 
-demo.show_demo()
-
 img.set_primary_window("Main Window", True)
 img.show_viewport()
 img.start_dearpygui()

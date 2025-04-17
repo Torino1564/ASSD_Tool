@@ -120,6 +120,8 @@ class TransferTool(Tool):
             self.y4 = img.add_plot_axis(img.mvYAxis, label="Amplitude")
             self.serie_fft = img.add_stem_series([], [], parent=self.y4)
 
+        img.add_button(label="Save Signal", callback=lambda: self.editor.AddSignal(self.output_signal))
+
         self.CalculateFilter()
 
     def paste_signal(self):
@@ -136,7 +138,7 @@ class TransferTool(Tool):
         tipo = img.get_value(self.tipo_filtro)
         orden = img.get_value(self.order)
         fcorte = img.get_value(self.fc)
-        atenuacion = img.get_value(self.atenuacion) 
+        atenuacion = img.get_value(self.atenuacion)
         b = None
         a = None
         if tipo == "butter":
@@ -185,7 +187,7 @@ class TransferTool(Tool):
                 w, h = sg.freqs(self.transfer_function.num, self.transfer_function.den)
                 Hf_interp = np.interp(np.abs(freq), w / (2 * np.pi), np.abs(h))
                 Yf = Xf * Hf_interp
-                return np.fft.ifft(Yf).real
+                return [float(c) for c in np.fft.ifft(Yf).real]
 
 
         self.output_signal.math_expr = FilteredMathExpr(self.signal, self.transfer_function)

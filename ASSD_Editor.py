@@ -52,6 +52,8 @@ class ASSDEditor(object):
         return self.signal_uuid[0]
 
     def AddSignal(self, signal: Signal):
+        if signal is None:
+            return
         signal.uuid = self.GetNewSignalUUID()
         self.signal_array.append(signal)
         tag = img.add_button(label="Copy", parent="SignalWindow", width=40)

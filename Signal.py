@@ -58,12 +58,12 @@ class Signal(object):
     def SetPeriodic(self, periodic: bool):
         self.periodic = periodic
 
-    def GetXData(self, pointsPerPeriod=100) -> list:
+    def GetXData(self, pointsPerPeriod=100, numPeriods=4) -> list:
         if self.has_math_expr:
             Xdata: list[float] = []
             upper_bound = -1
             if self.periodic:
-                upper_bound = 4 * pointsPerPeriod
+                upper_bound = numPeriods * pointsPerPeriod
             else:
                 upper_bound = self.preview_span * 100
 
@@ -79,11 +79,11 @@ class Signal(object):
     def EvaluatePoints(self, x_data: list[float]):
         return self.math_expr.EvaluatePoints(x_data)
 
-    def GetData(self, pointsPerPeriod=100):
+    def GetData(self, pointsPerPeriod=100, numPeriods=4):
         if not self.has_math_expr:
             return self.Xdata, self.Ydata
         else:
-            x_data = self.GetXData(pointsPerPeriod)
+            x_data = self.GetXData(pointsPerPeriod, numPeriods)
             if hasattr(self.math_expr, 'EvaluatePoints') and callable(getattr(self.math_expr, 'EvaluatePoints')):
                 y_data = self.math_expr.EvaluatePoints(x_data)
             else:
@@ -108,7 +108,7 @@ class Signal(object):
             img.add_plot_axis(img.mvXAxis, label="x", no_label=True, no_tick_marks=True, no_tick_labels=True)
             y_axis_tag = img.add_plot_axis(img.mvYAxis, label="y", no_label=True, no_tick_marks=True,
                               no_tick_labels=True)
-            xdata, ydata = self.GetData()
+            xdata, ydata = self.GetData(100, 4)
             img.add_line_series(xdata, ydata, parent=y_axis_tag)
 
 def on_double_click(sender, data, user_data):

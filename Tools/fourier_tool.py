@@ -51,7 +51,7 @@ class FourierTool(Tool):
         Xf = np.fft.fft(y)
         freq = np.fft.fftfreq(len(y), d=1/fs)
 
-        mag = np.abs(Xf)
+        mag = 20 * np.log10(np.abs(Xf))
 
         # Detectar la frecuencia de mayor magnitud
         idx_max = np.argmax(mag)
