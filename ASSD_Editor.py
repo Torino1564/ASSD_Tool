@@ -56,6 +56,7 @@ class ASSDEditor(object):
             return
         signal.uuid = self.GetNewSignalUUID()
         self.signal_array.append(signal)
+        self.selected_signal = signal
         tag = img.add_button(label="Copy", parent="SignalWindow", width=40)
         img.set_item_callback(tag, select_signal)
         img.set_item_user_data(tag, Data(editor=self, signal=signal))
