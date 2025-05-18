@@ -25,7 +25,7 @@ class MathExpr:
 
 
 class Signal(object):
-    def __init__(self, name, uuid = None, Xdata=None, Ydata=None, math_expr: MathExpr = None, x_label: str = "x", y_label: str = "y",
+    def __init__(self, name = None, uuid = None, Xdata=None, Ydata=None, math_expr: MathExpr = None, x_label: str = "x", y_label: str = "y",
                  periodic: bool = False, period: float = None, preview_span: float = 100):
         self.name = name
         self.uuid = uuid
