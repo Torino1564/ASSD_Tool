@@ -4,6 +4,7 @@ from Tools.fourier_tool import *
 from Tools.system_tool import *
 from Tools.transfer_tool import *
 from Tools.generator_tool import *
+from Tools.midi_tool import *
 from Signal import *
 
 
@@ -81,6 +82,7 @@ class ASSDEditor(object):
                     img.add_menu_item(label="Transfer Tool", callback=lambda: self.AddTool(TransferTool))
                     img.add_menu_item(label="Generator Tool", callback=lambda: self.AddTool(GeneratorTool))
                     img.add_menu_item(label="System Tool", callback=lambda: self.AddTool(SystemTool))
+                    img.add_menu_item(label="Midi Tool", callback=lambda: self.AddTool(MidiTool))
 
             with img.group(horizontal=True):
                 with img.child_window(width=300, resizable_x=True, label="SignalWindow", tag="SignalWindow") as self.signal_window_tag:
