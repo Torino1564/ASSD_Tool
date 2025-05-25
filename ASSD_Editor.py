@@ -33,6 +33,8 @@ def update_plot_size(editor):
 
 class ASSDEditor(object):
     def __init__(self):
+        self.selected_instrument_tag = None
+        self.selected_instrument = None
         self.signal_array: list[Signal] = []
         print(len(self.signal_array))
         self.selected_signal = None
@@ -41,6 +43,7 @@ class ASSDEditor(object):
         self.signal_uuid = [0]
         self.tab_bar = None
         self.signal_window_tag = None
+        self.instruments = []
 
         img.set_frame_callback(img.get_frame_count() + 10, lambda: update_plot_size(self))
 
@@ -84,6 +87,9 @@ class ASSDEditor(object):
                     img.add_menu_item(label="System Tool", callback=lambda: self.AddTool(SystemTool))
                     img.add_menu_item(label="Midi Tool", callback=lambda: self.AddTool(MidiTool))
                     img.add_menu_item(label="Sintesis Aditiva Tool", callback=lambda: self.AddTool(SintesisAditivaTool))
+                with img.menu(label="View"):
+                    img.add_menu_item(label="Instruments", callback=lambda: self.ShowInstruments())
+                    img.add_menu_item(label="Signals")
 
             with img.group(horizontal=True):
                 with img.child_window(width=300, resizable_x=True, label="SignalWindow", tag="SignalWindow") as self.signal_window_tag:
@@ -93,3 +99,33 @@ class ASSDEditor(object):
                 with img.child_window(autosize_x=True):
                     with img.tab_bar() as self.tab_bar:
                         img.add_tab(label="ASSD Tool")
+
+    def ShowInstruments(self):
+        def SelectInstrument(instrument, instrument_tag):
+            self.selected_instrument_tag = instrument_tag
+            self.selected_instrument = instrument
+
+        def UpdateCallback():
+            children = img.get_item_children(self.instrument_table, 1)
+            if children:
+                for child in children:
+                    img.delete_item(child)
+
+            for instrument in self.instruments:
+                with img.table_row(parent=self.instrument_table) as table_row_tag:
+                    img.add_text(instrument.name)
+                    img.add_button(label="Select", callback=lambda: SelectInstrument(instrument, table_row_tag))
+            with img.theme() as selected_row_theme:
+                with img.theme_component(img.mvAll):
+                    img.add_theme_color(img.mvThemeCol_Header, (0, 120, 215, 100), category=img.mvThemeCat_Core)
+                    img.add_theme_color(img.mvThemeCol_HeaderHovered, (30, 150, 255, 120), category=img.mvThemeCat_Core)
+                    img.add_theme_color(img.mvThemeCol_HeaderActive, (0, 100, 180, 120), category=img.mvThemeCat_Core)
+            if self.selected_instrument_tag is not None:
+                img.bind_item_theme(item=self.selected_instrument_tag, theme=selected_row_theme)
+
+        with img.window(label="Instruments"):
+            img.add_button(label="Update", callback=lambda : UpdateCallback())
+            with img.table() as self.instrument_table:
+                img.add_table_column(label="Name")
+                img.add_table_column(label="Select")
+            UpdateCallback()

@@ -9,8 +9,8 @@ class InstrumentoAditivo(Instrument):
         self.decay = None
         self.release = None
 
-    def Play(self, frequency: float):
-        return 0
+    def Play(self, nota, velocidad, duracion):
+        Signal()
 
 
 class SintesisAditivaTool(Tool):
