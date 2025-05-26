@@ -1,4 +1,5 @@
 import dearpygui.dearpygui as img
+import numpy as np
 
 
 class MathExpr:
@@ -26,7 +27,7 @@ class MathExpr:
 
 class Signal(object):
     def __init__(self, name = None, uuid = None, Xdata=None, Ydata=None, math_expr: MathExpr = None, x_label: str = "x", y_label: str = "y",
-                 periodic: bool = False, period: float = None, preview_span: float = 100):
+                 periodic: bool = False, period: float = None, preview_span: float = 100, duration = None):
         self.name = name
         self.uuid = uuid
         self.Xdata = Xdata
@@ -38,6 +39,7 @@ class Signal(object):
         self.math_expr: MathExpr = math_expr
         self.math_expr.period = self.period
         self.preview_span: float = preview_span
+        self.duration = duration
         if period is not None:
             self.periodic = True
         if math_expr is None:
@@ -65,6 +67,7 @@ class Signal(object):
             if self.periodic:
                 upper_bound = numPeriods * pointsPerPeriod
             else:
+                self.period = 1
                 upper_bound = self.preview_span * 100
 
             for i in range(0, int(upper_bound)):
@@ -79,11 +82,16 @@ class Signal(object):
     def EvaluatePoints(self, x_data: list[float]):
         return self.math_expr.EvaluatePoints(x_data)
 
-    def GetData(self, pointsPerPeriod=100, numPeriods=4):
+    def GetData(self, pointsPerPeriod=100, numPeriods=4, total_samples = None):
         if not self.has_math_expr:
             return self.Xdata, self.Ydata
         else:
-            x_data = self.GetXData(pointsPerPeriod, numPeriods)
+            x_data = []
+            y_data = []
+            if (total_samples is not None) and (self.duration is not None):
+                x_data = np.linspace(start=0, stop=self.duration, num=total_samples)
+            else:
+                x_data = self.GetXData(pointsPerPeriod, numPeriods)
             if hasattr(self.math_expr, 'EvaluatePoints') and callable(getattr(self.math_expr, 'EvaluatePoints')):
                 y_data = self.math_expr.EvaluatePoints(x_data)
             else:

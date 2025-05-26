@@ -26,16 +26,20 @@ class FMInstrument(Instrument):
                 A = np.exp(-3 * x) * (1 - np.exp(-5 * x))  # Envelope
                 fm = self.fm_ratio * self.fc
                 modulator = np.sin(2 * np.pi * fm * x)
-                return A * np.sin(2 * np.pi * self.fc * x * self.mod_index * modulator)
+                return A * np.sin(2 * np.pi * self.fc * x + self.mod_index * modulator)
 
             def EvaluatePoints(self, xValues: list[float]):
-                A = np.exp(-3 * xValues) * (1 - np.exp())
+                x = np.array(xValues, dtype=np.float32)  # Convert list to NumPy array
+
+                A = np.exp(-3 * x) * (1 - np.exp(-5 * x))  # Amplitude envelope
                 fm = self.fm_ratio * self.fc
-                modulator = np.sin(2 * np.pi * fm * xValues)
-                return A * np.sin(2 * np.pi * self.fc * xValues * self.mod_index * modulator)
+                modulator = np.sin(2 * np.pi * fm * x)
+
+                return A * np.sin(2 * np.pi * self.fc * x + self.mod_index * modulator)
 
         return Signal(math_expr=
-            SintesisFMMathExpression(note, fm_ratio=self.fm_ratio, mod_index=self.mod_index, duration=duration)
+            SintesisFMMathExpression(440 * 2**((note-69)/12), fm_ratio=self.fm_ratio, mod_index=self.mod_index, duration=duration),
+            duration=duration
         )
 
 

@@ -101,6 +101,7 @@ class ASSDEditor(object):
                     img.add_menu_item(label="Sintesis Aditiva Tool", callback=lambda: self.AddTool(SintesisAditivaTool))
                     img.add_menu_item(label="Sintesis KPS Tool", callback=lambda: self.AddTool(KPStrongTool))
                     img.add_menu_item(label="Sintesis FM Tool", callback=lambda: self.AddTool(SintesisFMTool))
+
                 with img.menu(label="View"):
                     img.add_menu_item(label="Instruments", callback=lambda: self.ShowInstruments())
                     img.add_menu_item(label="Signals")
