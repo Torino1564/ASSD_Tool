@@ -1,111 +1,135 @@
 from Tool import *
 from Instrument import *
-import dearpygui.dearpygui as img
-import numpy as np
-import sounddevice as sd
 
 
-def adsr_envelope(t, duration, attack, decay, sustain, release):
-    a_samples = int(attack * len(t) / duration)
-    d_samples = int(decay * len(t) / duration)
-    r_samples = int(release * len(t) / duration)
-    s_samples = len(t) - (a_samples + d_samples + r_samples)
+class InstrumentoAditivo(Instrument):
+    def __init__(self, editor):
+        super().__init__(editor)
+        self.attack = None
+        self.sustain = None
+        self.decay = None
+        self.release = None
 
-    envelope = np.zeros_like(t)
-    envelope[:a_samples] = np.linspace(0, 1, a_samples)
-    envelope[a_samples:a_samples + d_samples] = np.linspace(1, sustain, d_samples)
-    envelope[a_samples + d_samples:a_samples + d_samples + s_samples] = sustain
-    envelope[-r_samples:] = np.linspace(sustain, 0, r_samples)
-    return envelope
+    def Play(self, note, velocity, duration):
+        return 0
 
 
-class SintesisFM(Tool):
+class SintesisAditivaTool(Tool):
     def __init__(self, editor, uuid):
-        Tool.__init__(self, name="Sintesis FM Tool", editor=editor, uuid=uuid)
+        Tool.__init__(self, name="Sintesis Aditiva Tool", editor=editor, uuid=uuid)
         self.Init(self.Run)
-        self.t = None
-        self.y = None
-        self.fs = None
-
-    def update_plot(self):
-        freq = img.get_value("freq_input")
-        duration = img.get_value(self.duration_tag)
-        fs = 44100
-        t = np.linspace(0, duration, int(fs * duration), endpoint=False)
-
-        use_adsr = img.get_value("ADSR_bool")
-
-        attack = img.get_value("attack")
-        decay = img.get_value("decay")
-        sustain = img.get_value("sustain")
-        release = img.get_value("release")
-
-        if use_adsr:
-            # Use ADSR values
-            a_t = adsr_envelope(t, duration, attack, decay, sustain, release)
-        else:
-            # Use custom function
-            e1 = lambda t: np.exp(1) * (t / attack) * np.exp(-t / attack)
-            e2 = lambda t: (1 - sustain) * np.exp(1) * (-(t - attack - decay) / decay) * np.exp(
-                (t - attack - decay) / decay) + sustain
-            e3 = lambda t: sustain
-            e4 = lambda t: sustain * np.exp(-50 * (t - (decay + attack + release)))
-
-            # Define conditions
-            conditions = [(t >= 0) & (t < attack), (t >= attack) & (t < decay + attack),
-                          (t >= decay + attack) & (t < decay + attack + release), t >= decay + attack + release]
-
-            # Create piecewise function
-            a_t = np.piecewise(t, conditions, [e1, e2, e3, e4])
-
-        i_t = 5.0 * np.exp(-4 * t / duration)
-        mod_freq = freq * 3
-        y = a_t * np.sin(2 * np.pi * freq * t + i_t * np.sin(2 * np.pi * mod_freq * t))
-
-        self.t = t
-        self.y = y
-        self.fs = fs
-
-        # Update plots
-        img.set_value(self.fm_line, [t.tolist(), y.tolist()])
-        img.set_value(self.env_line, [t.tolist(), a_t.tolist()])
-
-    def fm_clarinet(self):
-        if self.y is not None and self.fs is not None:
-            y = np.asarray(self.y, dtype=np.float32)
-            sd.play(y, self.fs)
-            sd.wait()
-        else:
-            print("No signal to play. Run 'update_plot' first.")
 
     def Run(self):
-        with img.window(label="FM Clarinet Synth", width=500, height=850):
-            img.add_slider_float(label="Duración (s)", default_value=1.0, min_value=0.1, max_value=5.0,
-                                 tag="dur_slider")
-            self.duration_tag = "dur_slider"
+        img.add_child_window()
+        # Desarrollo paso a paso de la herramienta "Sintesis Aditiva Tool"
 
-            img.add_input_float(label="Frecuencia (Hz)", default_value=147.0, tag="freq_input", step=1.0)
-            img.add_checkbox(label="Usar ADSR", default_value=True, tag="ADSR_bool")
 
-            # ADSR Controls
-            img.add_text("ADSR Envelope:")
-            img.add_slider_float(label="Attack (s)", default_value=0.05, min_value=0.01, max_value=1.0, tag="attack")
-            img.add_slider_float(label="Decay (s)", default_value=0.1, min_value=0.01, max_value=1.0, tag="decay")
-            img.add_slider_float(label="Sustain (0–1)", default_value=0.7, min_value=0.0, max_value=1.0, tag="sustain")
-            img.add_slider_float(label="Release (s)", default_value=0.2, min_value=0.01, max_value=2.0, tag="release")
+# Esto incluye la generación de la GUI en DearPyGui, selección de instrumento,
+# sliders de control y visualización en tiempo real de la señal sintetizada.
 
-            # Plot: FM signal
-            self.plot_tag = None
-            with img.plot(label="Señal FM (Clarinet)", height=200) as self.fm_plot:
-                x1 = img.add_plot_axis(img.mvXAxis, label="Tiempo")
-                y1 = img.add_plot_axis(img.mvYAxis, label="Amplitud")
-                self.fm_line = img.add_line_series([], [], parent=y1)
+from Tool import *
+from Signal import Signal, MathExpr
+import dearpygui.dearpygui as img
+import numpy as np
 
-            # Plot: Amplitude envelope
-            with img.plot(label="Envelope A(t)", height=200) as self.env_plot:
-                x2 = img.add_plot_axis(img.mvXAxis, label="Tiempo")
-                y2 = img.add_plot_axis(img.mvYAxis, label="Amplitud")
-                self.env_line = img.add_line_series([], [], parent=y2)
 
-            img.add_button(label="Actualizar Gráficos", callback=self.update_plot)
-            img.add_button(label="Reproducir Sonido", callback=self.fm_clarinet)
+class InstrumentoPreset:
+    def __init__(self, name, partials, adsr):
+        self.name = name
+        self.partials = partials  # Lista de (n, amplitud) donde n es el multiplicador de f0
+        self.adsr = adsr  # Diccionario con keys: attack, decay, sustain, release, k, alpha
+
+
+# === Presets de instrumentos reales (valores aproximados obtenidos de literatura y análisis espectral) ===
+INSTRUMENT_PRESETS = [
+    InstrumentoPreset("Flauta", [(1, 1.0), (2, 0.5), (3, 0.2), (4, 0.1)],
+                      {"attack": 0.05, "decay": 0.1, "sustain": 0.7, "release": 0.2, "k": 1.2, "alpha": 0.3}),
+    InstrumentoPreset("Clarinete", [(1, 1.0), (3, 0.6), (5, 0.3), (7, 0.15)],
+                      {"attack": 0.02, "decay": 0.08, "sustain": 0.6, "release": 0.3, "k": 1.3, "alpha": 0.2}),
+    InstrumentoPreset("Violin", [(1, 1.0), (2, 0.8), (3, 0.6), (4, 0.4), (5, 0.2)],
+                      {"attack": 0.01, "decay": 0.1, "sustain": 0.5, "release": 0.3, "k": 1.5, "alpha": 0.25}),
+    InstrumentoPreset("Trompeta", [(1, 1.0), (2, 0.7), (3, 0.4), (4, 0.3), (5, 0.1)],
+                      {"attack": 0.03, "decay": 0.1, "sustain": 0.8, "release": 0.4, "k": 1.1, "alpha": 0.35}),
+    InstrumentoPreset("Guitarra", [(1, 1.0), (2, 0.5), (3, 0.3), (4, 0.2), (5, 0.1)],
+                      {"attack": 0.02, "decay": 0.2, "sustain": 0.4, "release": 0.5, "k": 1.3, "alpha": 0.4}),
+    InstrumentoPreset("Piano", [(1, 1.0), (2, 0.7), (3, 0.4), (4, 0.25), (5, 0.1)],
+                      {"attack": 0.01, "decay": 0.15, "sustain": 0.5, "release": 0.3, "k": 1.4, "alpha": 0.5})
+]
+
+
+class SintesisAditivaTool(Tool):
+    def __init__(self, editor, uuid):
+        Tool.__init__(self, name="Sintesis Aditiva Tool", editor=editor, uuid=uuid)
+        self.Init(self.Run)
+
+    def Run(self):
+        self.duration_tag = img.add_slider_float(label="Duración (s)", default_value=1.0, min_value=0.1, max_value=5.0)
+        self.attack_tag = img.add_slider_float(label="Attack (s)", default_value=0.05, min_value=0.001, max_value=1.0)
+        self.decay_tag = img.add_slider_float(label="Decay (s)", default_value=0.1, min_value=0.001, max_value=1.0)
+        self.sustain_tag = img.add_slider_float(label="Sustain (0-1)", default_value=0.7, min_value=0.0, max_value=1.0)
+        self.release_tag = img.add_slider_float(label="Release (s)", default_value=0.2, min_value=0.001, max_value=2.0)
+        self.k_tag = img.add_slider_float(label="Factor de Ataque (k)", default_value=1.2, min_value=1.0, max_value=2.0)
+        self.alpha_tag = img.add_slider_float(label="Pendiente Alpha", default_value=0.3, min_value=0.0, max_value=1.0)
+
+        self.plot_tag = None
+        with img.plot(label="Señal Aditiva", width=-1, height=300) as self.plot_tag:
+            x_axis = img.add_plot_axis(img.mvXAxis, label="Tiempo")
+            y_axis = img.add_plot_axis(img.mvYAxis, label="Amplitud")
+            self.line_series = img.add_line_series([], [], parent=y_axis)
+
+        img.add_button(label="Actualizar Grafico", callback=self.update_plot)
+
+        img.add_text("Instrumentos:")
+        with img.group(horizontal=True):
+            for preset in INSTRUMENT_PRESETS:
+                def make_callback(preset):
+                    return lambda sender, app_data: self.set_preset(preset)
+
+                img.add_button(label=preset.name, callback=make_callback(preset))
+
+    def set_preset(self, preset):
+        self.selected_partials = preset.partials
+        img.set_value(self.attack_tag, preset.adsr["attack"])
+        img.set_value(self.decay_tag, preset.adsr["decay"])
+        img.set_value(self.sustain_tag, preset.adsr["sustain"])
+        img.set_value(self.release_tag, preset.adsr["release"])
+        img.set_value(self.k_tag, preset.adsr["k"])
+        img.set_value(self.alpha_tag, preset.adsr["alpha"])
+        self.update_plot()
+
+    def update_plot(self):
+        duration = img.get_value(self.duration_tag)
+        A = img.get_value(self.attack_tag)
+        D = img.get_value(self.decay_tag)
+        S = img.get_value(self.sustain_tag)
+        R = img.get_value(self.release_tag)
+        k = img.get_value(self.k_tag)
+        alpha = img.get_value(self.alpha_tag)
+
+        if not hasattr(self, 'selected_partials'):
+            self.selected_partials = [(1, 1.0)]
+
+        fs = 44100
+        t = np.linspace(0, duration, int(fs * duration), endpoint=False)
+        envelope = self.adsr_envelope(t, A, D, S, R, k, alpha, duration)
+
+        y = envelope
+        img.set_value(self.line_series, [t.tolist(), y.tolist()])
+
+    def adsr_envelope(self, t, A, D, S, R, k, alpha, T):
+        env = np.zeros_like(t)
+        A0 = 1.0
+        A_end = A
+        D_end = A + D
+        R_start = T - R
+
+        for i, ti in enumerate(t):
+            if ti < A_end:
+                env[i] = (ti / A_end) * (k * A0)
+            elif ti < D_end:
+                env[i] = k * A0 - ((k * A0 - A0) * (ti - A_end) / D)
+            elif ti < R_start:
+                env[i] = max(0, A0 - alpha * (ti - D_end))
+            elif ti < T:
+                env[i] = env[i - 1] * (1 - (ti - R_start) / R)
+        return env

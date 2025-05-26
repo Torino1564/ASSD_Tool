@@ -4,6 +4,23 @@ import dearpygui.dearpygui as img
 import numpy as np
 import sounddevice as sd
 
+from utl import Math
+
+
+class Sintesis_FM_tool(Instrument):
+    def __init__(self, editor):
+        super(Sintesis_FM_tool, self).__init__(editor)
+        self.name = 'Sintesis_FM_tool'
+
+    def Play(self, note, velocity, duration):
+        def MathExprCallback():
+            return 0
+
+        return Signal(math_expr=MathExpr(
+            MathExprCallback
+        ))
+
+
 def fm_clarinet(fc, duration=2.0, fm_ratio=1.5, mod_index=2.0, fs=44100):
     t = np.linspace(0, duration, int(fs * duration), endpoint=False)
     A = np.exp(-3 * t) * (1 - np.exp(-5 * t))  # Envelope
