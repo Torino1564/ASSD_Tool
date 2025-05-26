@@ -17,7 +17,8 @@ class MathExpr:
         else:
             y_data = []
             for x in xValues:
-                x = x % self.period
+                if self.period is not None:
+                    x = x % self.period
                 yData.append(self.math_expression(x))
         return yData
 
