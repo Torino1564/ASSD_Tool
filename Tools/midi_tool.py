@@ -40,37 +40,24 @@ class MidiTool(Tool):
         with img.table() as self.track_table:
             img.add_table_column(label="Track")
             img.add_table_column(label="Instrument")
-
+        img.add_button(label="Update File", callback=lambda: self.UpdateTracks())
         img.add_button(label="Save File", callback=lambda: self.ExportTracks())
         self.warning_tag = img.add_text("Warning! Make sure all tracks have an instrument assigned to them!", color=(150, 255, 150, 255), show=False)
 
     def UpdateTracks(self):
-        self.midi_file.print_tracks()
-
         children = img.get_item_children(self.track_table, 1)
         if children:
             for child in children:
                 img.delete_item(child)
-
-        def RemoveInstrument(toRemove):
-            toRemove = None
-            self.UpdateTracks()
-
-        def AssignCopied(source, destination):
-            destination = source
-            self.UpdateTracks()
 
         for track_and_instrument in self.tracks_and_instruments:
             track = track_and_instrument.midi_track
             instrument = track_and_instrument.instrument
             with img.table_row(parent=self.track_table):
                 img.add_text(track.name)
-                with img.group() as group_tag:
-                    if instrument is not None:
-                        img.add_text(instrument.name)
-                        img.add_button(label="Remove", callback=lambda: RemoveInstrument(instrument))
-                    img.add_button(label="Paste", callback=lambda: AssignCopied(self.editor.selected_instrument_tag,
-                                                                                instrument))
+                with img.group() as cell_group_tag:
+                    img.add_button(label="Paste")
+
     def ExportTracks(self):
         for track_and_instrument in self.tracks_and_instruments:
             if track_and_instrument.instrument is None:

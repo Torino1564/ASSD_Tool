@@ -22,6 +22,7 @@ class KPStrongTool(Tool):
     def __init__(self, editor, uuid, signal=None, tab: bool = True):
         Tool.__init__(self, name="KPstrongTool", editor=editor, uuid=uuid)
         self.noise = "blanco"
+        self.filterFunction = self.filter_avg
         self.pitch = 200
         self.L = 1024
         self.fs = 44100
@@ -48,7 +49,7 @@ class KPStrongTool(Tool):
             print(f"Tipo de ruido seleccionado: {noise}")
 
         # Combo box para seleccionar el tipo de ruido
-        img.add_combo(
+        self.ruido_combo_tag = img.add_combo(
             items=opciones_ruido,
             default_value="blanco",
             label="Tipo de Ruido",
@@ -61,7 +62,7 @@ class KPStrongTool(Tool):
                              user_data="pitch")
 
         img.add_text("Seleccione el Blend Factor")
-        img.add_slider_float(label="", default_value=self.blendFactor, min_value=-1.0, max_value=1.0,
+        img.add_slider_float(label="", default_value=self.blendFactor, min_value=0, max_value=1.0,
                              callback=self.update_var,
                              user_data="blendFactor")
 
@@ -130,7 +131,7 @@ class KPStrongTool(Tool):
         return np.convolve(base, [0.5, 0.5], mode='same')
 
     # filtros
-    def filter(self, buffer):
+    def filter_avg(self, buffer):
         return 0.5 * (buffer[0] + buffer[1])
 
     def filtro_media_3(self, buffer):

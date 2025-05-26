@@ -7,18 +7,36 @@ import sounddevice as sd
 from utl import Math
 
 
-class Sintesis_FM_tool(Instrument):
-    def __init__(self, editor):
-        super(Sintesis_FM_tool, self).__init__(editor)
+class FMInstrument(Instrument):
+    def __init__(self, editor, fm_ratio, mod_index):
+        super(FMInstrument, self).__init__(editor)
+        self.fm_ratio = fm_ratio
+        self.mod_index = mod_index
         self.name = 'Sintesis_FM_tool'
 
     def Play(self, note, velocity, duration):
-        def MathExprCallback():
-            return 0
+        class SintesisFMMathExpression(MathExpr):
+            def __init__(self, fc, fm_ratio, mod_index, duration):
+                self.fc = fc
+                self.fm_ratio = fm_ratio
+                self.mod_index = mod_index
+                self.duration = duration
 
-        return Signal(math_expr=MathExpr(
-            MathExprCallback
-        ))
+            def __call__(self, x: float):
+                A = np.exp(-3 * x) * (1 - np.exp(-5 * x))  # Envelope
+                fm = self.fm_ratio * self.fc
+                modulator = np.sin(2 * np.pi * fm * x)
+                return A * np.sin(2 * np.pi * self.fc * x * self.mod_index * modulator)
+
+            def EvaluatePoints(self, xValues: list[float]):
+                A = np.exp(-3 * xValues) * (1 - np.exp())
+                fm = self.fm_ratio * self.fc
+                modulator = np.sin(2 * np.pi * fm * xValues)
+                return A * np.sin(2 * np.pi * self.fc * xValues * self.mod_index * modulator)
+
+        return Signal(math_expr=
+            SintesisFMMathExpression(note, fm_ratio=self.fm_ratio, mod_index=self.mod_index, duration=duration)
+        )
 
 
 def fm_clarinet(fc, duration=2.0, fm_ratio=1.5, mod_index=2.0, fs=44100):
@@ -72,7 +90,18 @@ class SintesisFMTool(Tool):
                 x2 = img.add_plot_axis(img.mvXAxis, label="Tiempo")
                 y2 = img.add_plot_axis(img.mvYAxis, label="Amplitud")
             self.fm_line = img.add_line_series([], [], parent=y2)            
- 
+
+            self.fm_ratio_tag = img.add_input_float(label="FM Ratio", default_value=1.5)
+            self.mod_index_tag = img.add_input_float(label="Mod index", default_value=2.0)
+
+
             img.add_button(label="Actualizar Gráficos", callback=self.update_plot)
             img.add_input_float(label="Frecuencia (Hz)", default_value=147.0, tag="freq_input", step=1.0)
             img.add_button(label="Reproducir Sonido", callback=self.play_fm_callback)
+
+            def AddInstrument():
+                self.editor.AddInstrument(FMInstrument(self.editor,
+                                                       img.get_value(self.fm_ratio_tag),
+                                                       mod_index=img.get_value(self.mod_index_tag)))
+
+            img.add_button(label="Add instrument", callback=lambda: AddInstrument())

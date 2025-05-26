@@ -114,6 +114,11 @@ class ASSDEditor(object):
                     with img.tab_bar() as self.tab_bar:
                         img.add_tab(label="ASSD Tool")
 
+        with img.window(label="Instruments", show=False) as self.instruments_window:
+            with img.table() as self.instrument_table:
+                img.add_table_column(label="Name")
+                img.add_table_column(label="Select")
+
     def SelectInstrument(self, instrument, instrument_tag):
         self.selected_instrument_tag = instrument_tag
         self.selected_instrument = instrument
@@ -127,7 +132,4 @@ class ASSDEditor(object):
 
 
     def ShowInstruments(self):
-        with img.window(label="Instruments"):
-            with img.table() as self.instrument_table:
-                img.add_table_column(label="Name")
-                img.add_table_column(label="Select")
+        img.show_item(self.instruments_window)
