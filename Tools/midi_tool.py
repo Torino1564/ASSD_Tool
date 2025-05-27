@@ -18,10 +18,10 @@ class TrackAndInstrument:
 class MidiTool(Tool):
     def __init__(self, editor, uuid):
         Tool.__init__(self, name="Midi Tool", editor=editor, uuid=uuid)
-        self.Init(self.Run)
         self.midi_file: mido.MidiFile = mido.MidiFile()
         self.tracks_and_instruments: list[TrackAndInstrument] = []
         self.selected_signal = None
+        self.Init(self.Run)
 
     def Run(self):
 
@@ -122,6 +122,8 @@ class MidiTool(Tool):
             total_duration = 0
             for msg in track:
                 absolute_ticks += msg.time
+                if msg.type == "set_tempo":
+                    tempo = msg.tempo
                 if msg.type == 'note_on' and msg.velocity > 0:
                     active_notes[msg.note] = [mido.tick2second(absolute_ticks, ticks_per_beat, tempo), msg.velocity]
 

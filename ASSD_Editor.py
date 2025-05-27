@@ -8,7 +8,8 @@ from Tools.midi_tool import *
 from Tools.sintesis_aditiva_tool import *
 from Tools.sintesis_modelado_fisico_tool import *
 from Tools.sintesis_FM_tool import *
-from Signal import *
+from Tools.Effects_tool import *
+from Tools.espectrogram_tool import *
 from Instrument import *
 
 class Data:
@@ -94,13 +95,16 @@ class ASSDEditor(object):
                     img.add_menu_item(label="Plot Tool", callback=lambda: self.AddTool(PlotTool))
                     img.add_menu_item(label="Sample Tool", callback=lambda: self.AddTool(SampleTool))
                     img.add_menu_item(label="Fourier Tool", callback=lambda: self.AddTool(FourierTool))
+                    img.add_menu_item(label="Espectrogram Tool", callback=lambda: self.AddTool(EspectrogramTool))
                     img.add_menu_item(label="Transfer Tool", callback=lambda: self.AddTool(TransferTool))
                     img.add_menu_item(label="Generator Tool", callback=lambda: self.AddTool(GeneratorTool))
                     img.add_menu_item(label="System Tool", callback=lambda: self.AddTool(SystemTool))
                     img.add_menu_item(label="Midi Tool", callback=lambda: self.AddTool(MidiTool))
-                    img.add_menu_item(label="Sintesis Aditiva Tool", callback=lambda: self.AddTool(SintesisAditivaTool))
-                    img.add_menu_item(label="Sintesis KPS Tool", callback=lambda: self.AddTool(KPStrongTool))
-                    img.add_menu_item(label="Sintesis FM Tool", callback=lambda: self.AddTool(SintesisFMTool))
+                    img.add_menu_item(label="Audio Effects Tool", callback=lambda: self.AddTool(EffectsTool))
+                    img.add_separator(label="Instrument Synthesis")
+                    img.add_menu_item(label="Additive Synthesis Tool", callback=lambda: self.AddTool(SintesisAditivaTool))
+                    img.add_menu_item(label="KPS Synthesis Tool", callback=lambda: self.AddTool(KPStrongTool))
+                    img.add_menu_item(label="FM Synthesis Tool", callback=lambda: self.AddTool(SintesisFMTool))
 
                 with img.menu(label="View"):
                     img.add_menu_item(label="Instruments", callback=lambda: self.ShowInstruments())

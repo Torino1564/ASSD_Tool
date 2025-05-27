@@ -3,3 +3,4 @@ sympy
 mido
 dearpygui
 scipy
+matplotlib
