@@ -16,8 +16,7 @@ class InstrumentoKPstrong(Instrument):
 
     def Play(self, frequency: float):
 
-        return 0 #karplus_strong()
-
+        return 0
 class KPStrongTool(Tool):
     def __init__(self, editor, uuid, signal=None, tab: bool = True):
         Tool.__init__(self, name="KPstrongTool", editor=editor, uuid=uuid)
@@ -54,6 +53,23 @@ class KPStrongTool(Tool):
             default_value="blanco",
             label="Tipo de Ruido",
             callback=seleccionar_ruido
+        )
+
+        # Opciones para el combo
+        opciones_filtro = ["avg", "media 3", "iir"]
+
+        # Callback para actualizar la variable `filter`
+        def seleccionar_filtro(sender, app_data, user_data):
+            global filterType
+            filterType = app_data
+            print(f"Tipo de ruido seleccionado: {filterType}")
+
+        # Combo box para seleccionar el tipo de ruido
+        self.ruido_combo_tag = img.add_combo(
+            items=opciones_filtro,
+            default_value="avg",
+            label="Tipo de Filtro",
+            callback=seleccionar_filtro
         )
 
         img.add_text("Seleccione el Pitch:")
@@ -98,6 +114,9 @@ class KPStrongTool(Tool):
 
         # Generador de ruido según el tipo
         if self.noise == "blanco":
+            waveTable = 2 * np.random.rand(int(self.pitch)) - 1  # Uniforme [-1, 1]
+
+        if self.noise == "filtrado":
             waveTable = 2 * np.random.rand(int(self.pitch)) - 1  # Uniforme [-1, 1]
 
         else:
