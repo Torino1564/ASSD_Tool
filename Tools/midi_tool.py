@@ -159,22 +159,22 @@ class MidiTool(Tool):
                             result += signal.EvaluateMath(x - offset)
 
                 def EvaluatePoints(self, xValues: list[float]):
-                    y = [0.0] * len(xValues)
+                    y = np.zeros(len(xValues))
+                    resolution = xValues[1] - xValues[0]
                     for el in self.signals_and_offsets:
-                        resolution = xValues[1] - xValues[0]
                         offset = el["offset"]
                         signal = el["signal"]
-                        local_result = signal.EvaluatePoints(np.linspace(start=0, stop=signal.duration, num=int(signal.duration/resolution)))
-                        j = 0
-                        for i, x in enumerate(xValues):
-                            if x < offset:
-                                continue
-                            if x >= offset + signal.duration:
-                                break
-                            if j > len(local_result) - 1:
-                                break
-                            y[i] = local_result[j]
-                            j += 1
+                        local_result = signal.EvaluatePoints(np.linspace(start=0, stop=signal.duration, num=int(signal.duration/resolution))).tolist()
+                        offset_index = int(offset / resolution)
+                        if offset_index >= len(y):
+                            continue  # skip if offset is outside y
 
+                        end_index = offset_index + len(local_result)
+                        if end_index > len(y):
+                            # Clip to avoid overflow
+                            local_result = local_result[:len(y) - offset_index]
+                            end_index = len(y)
+
+                        y[offset_index:end_index] += local_result
                     return y
             self.editor.AddSignal(Signal(math_expr=TrackMathExpr(signals_and_offsets), name=track.name, duration=total_duration))
