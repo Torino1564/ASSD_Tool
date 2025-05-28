@@ -107,13 +107,10 @@ class MidiTool(Tool):
 
     def ExportTracks(self):
         for track_and_instrument in self.tracks_and_instruments:
-            #if track_and_instrument.instrument is None:
-            #    img.show_item(self.warning_tag)
-            #    break
-            #else:
-            #    img.hide_item(self.warning_tag)
             track = track_and_instrument.midi_track
             instrument = track_and_instrument.instrument
+            if instrument is None:
+                continue
             ticks_per_beat = self.midi_file.ticks_per_beat
             tempo = 500000
             notes = []
@@ -161,10 +158,16 @@ class MidiTool(Tool):
                 def EvaluatePoints(self, xValues: list[float]):
                     y = np.zeros(len(xValues))
                     resolution = xValues[1] - xValues[0]
+                    i = 0
                     for el in self.signals_and_offsets:
+                        print(f"Signal number:{i}")
+                        i += 1
                         offset = el["offset"]
                         signal = el["signal"]
-                        local_result = signal.EvaluatePoints(np.linspace(start=0, stop=signal.duration, num=int(signal.duration/resolution))).tolist()
+
+                        local_result = signal.EvaluatePoints(
+                            np.linspace(start=0, stop=signal.duration, num=int(signal.duration / resolution)))
+                        local_result = local_result.tolist() if not isinstance(local_result, list) else local_result
                         offset_index = int(offset / resolution)
                         if offset_index >= len(y):
                             continue  # skip if offset is outside y
