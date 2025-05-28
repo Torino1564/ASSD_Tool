@@ -73,9 +73,9 @@ class EspectrogramTool(Tool):
         with img.collapsing_header(label="Señales con 5 frecuencias", default_open=False):
             for label in ["Señal A", "Señal B", "Señal C"]:
                 img.add_button(label=label, callback=self._generate_callback(label))
-        self.ppp_tag = img.add_slider_float(label="Points per period", default_value=1000, min_value=0)
-        self.num_periods_tag = img.add_slider_float(label="Periods to show", default_value=4, min_value=0)
-        self.total_samples_tag = img.add_slider_float(label="Total samples (not periodic)", default_value=10000, min_value=100)
+        self.ppp_tag = img.add_slider_float(label="Points per period", default_value=1000, min_value=0, max_value=10000)
+        self.num_periods_tag = img.add_slider_float(label="Periods to show", default_value=4, min_value=0, max_value=10)
+        self.total_samples_tag = img.add_slider_float(label="Total samples (not periodic)", default_value=10000, min_value=100, max_value=100000)
         img.add_button(label="Pegar señal copiada", callback=self.paste_signal)
         img.add_button(label="Mostrar Espectrograma", callback=self.mostrar_espectrograma)
         img.add_separator()
