@@ -168,53 +168,52 @@ class SintesisFMTool(Tool):
             print("No signal to play. Run 'update_plot' first.")
 
     def Run(self):
-        with img.window(label="FM Clarinet Synth", width=500, height=850):
-            img.add_slider_float(label="Duración (s)", default_value=1.0, min_value=0.1, max_value=5.0,
-                                 tag="dur_slider")
-            self.duration_tag = "dur_slider"
+        img.add_slider_float(label="Duración (s)", default_value=1.0, min_value=0.1, max_value=5.0,
+                             tag="dur_slider")
+        self.duration_tag = "dur_slider"
 
-            img.add_input_float(label="Frecuencia (Hz)", default_value=147.0, tag="freq_input", step=1.0)
-            img.add_checkbox(label="Usar ADSR", default_value=True, tag="ADSR_bool")
+        img.add_input_float(label="Frecuencia (Hz)", default_value=147.0, tag="freq_input", step=1.0)
+        img.add_checkbox(label="Usar ADSR", default_value=True, tag="ADSR_bool")
 
-            # ADSR Controls
-            img.add_text("ADSR Envelope:")
-            img.add_slider_float(label="Attack (s)", default_value=0.05, min_value=0.01, max_value=1.0, tag="attack")
-            img.add_slider_float(label="Decay (s)", default_value=0.1, min_value=0.01, max_value=1.0, tag="decay")
-            img.add_slider_float(label="Sustain (s)", default_value=0.3, min_value=0.0, max_value=1.0, tag="sustain")
-            img.add_slider_float(label="Sustain Value(0–1)", default_value=0.6, min_value=0.0, max_value=1.0, tag="sustain_value")
-            img.add_slider_float(label="Release (s)", default_value=0.2, min_value=0.01, max_value=2.0, tag="release")
+        # ADSR Controls
+        img.add_text("ADSR Envelope:")
+        img.add_slider_float(label="Attack (s)", default_value=0.05, min_value=0.01, max_value=1.0, tag="attack")
+        img.add_slider_float(label="Decay (s)", default_value=0.1, min_value=0.01, max_value=1.0, tag="decay")
+        img.add_slider_float(label="Sustain (s)", default_value=0.3, min_value=0.0, max_value=1.0, tag="sustain")
+        img.add_slider_float(label="Sustain Value(0–1)", default_value=0.6, min_value=0.0, max_value=1.0, tag="sustain_value")
+        img.add_slider_float(label="Release (s)", default_value=0.2, min_value=0.01, max_value=2.0, tag="release")
 
-            img.add_slider_float(label="I(t) Gain ", default_value=5, min_value=0.01, max_value=10.0, tag="it_gain")
-            img.add_slider_float(label="I(t) Decay rate ", default_value=4, min_value=0.01, max_value=10.0,
-                                 tag="it_decay")
-            img.add_slider_float(label="Mod Freq Multiplier", default_value=3, min_value=0.01, max_value=100.0,
-                                 tag="mod_freq")
+        img.add_slider_float(label="I(t) Gain ", default_value=5, min_value=0.01, max_value=10.0, tag="it_gain")
+        img.add_slider_float(label="I(t) Decay rate ", default_value=4, min_value=0.01, max_value=10.0,
+                             tag="it_decay")
+        img.add_slider_float(label="Mod Freq Multiplier", default_value=3, min_value=0.01, max_value=100.0,
+                             tag="mod_freq")
 
-            # Plot: FM signal
-            self.plot_tag = None
-            with img.plot(label="Señal FM (Clarinet)", height=200) as self.fm_plot:
-                x1 = img.add_plot_axis(img.mvXAxis, label="Tiempo")
-                y1 = img.add_plot_axis(img.mvYAxis, label="Amplitud")
-                self.fm_line = img.add_line_series([], [], parent=y1)
+        # Plot: FM signal
+        self.plot_tag = None
+        with img.plot(label="Señal FM", height=200) as self.fm_plot:
+            x1 = img.add_plot_axis(img.mvXAxis, label="Tiempo")
+            y1 = img.add_plot_axis(img.mvYAxis, label="Amplitud")
+            self.fm_line = img.add_line_series([], [], parent=y1)
 
-            # Plot: Amplitude envelope
-            with img.plot(label="Envelope A(t)", height=200) as self.env_plot:
-                x2 = img.add_plot_axis(img.mvXAxis, label="Tiempo")
-                y2 = img.add_plot_axis(img.mvYAxis, label="Amplitud")
-                self.env_line = img.add_line_series([], [], parent=y2)
+        # Plot: Amplitude envelope
+        with img.plot(label="Envelope A(t)", height=200) as self.env_plot:
+            x2 = img.add_plot_axis(img.mvXAxis, label="Tiempo")
+            y2 = img.add_plot_axis(img.mvYAxis, label="Amplitud")
+            self.env_line = img.add_line_series([], [], parent=y2)
 
-            img.add_button(label="Actualizar Gráficos", callback=self.update_plot)
-            img.add_button(label="Reproducir Sonido", callback=self.fm_clarinet)
+        img.add_button(label="Actualizar Gráficos", callback=self.update_plot)
+        img.add_button(label="Reproducir Sonido", callback=self.fm_clarinet)
 
-            def AddInstrument():
-                self.editor.AddInstrument(FMInstrument(self.editor,
-                                                       img.get_value("mod_freq"), img.get_value("it_gain"),
-                                                       img.get_value("it_decay"),
-                                                       img.get_value("ADSR_bool"),
-                                                       attack=img.get_value("attack")
-                                                       , decay=img.get_value("decay")
-                                                       , sustain=img.get_value("sustain")
-                                                       , sustain_value=img.get_value("sustain_value")
-                                                       , release=img.get_value("release")))
+        def AddInstrument():
+            self.editor.AddInstrument(FMInstrument(self.editor,
+                                                   img.get_value("mod_freq"), img.get_value("it_gain"),
+                                                   img.get_value("it_decay"),
+                                                   img.get_value("ADSR_bool"),
+                                                   attack=img.get_value("attack")
+                                                   , decay=img.get_value("decay")
+                                                   , sustain=img.get_value("sustain")
+                                                   , sustain_value=img.get_value("sustain_value")
+                                                   , release=img.get_value("release")))
 
-            img.add_button(label="Add instrument", callback=lambda: AddInstrument())
+        img.add_button(label="Add instrument", callback=lambda: AddInstrument())

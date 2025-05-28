@@ -1,4 +1,7 @@
+from Tools.Flanger_tool import FlangerTool
+from Tools.mixer_tool import MixerTool
 from Tools.plot_tool import *
+from Tools.sample_sintesis_tool import SampleSynthTool
 from Tools.sample_tool import *
 from Tools.fourier_tool import *
 from Tools.system_tool import *
@@ -101,8 +104,12 @@ class ASSDEditor(object):
                     img.add_menu_item(label="System Tool", callback=lambda: self.AddTool(SystemTool))
                     img.add_menu_item(label="Midi Tool", callback=lambda: self.AddTool(MidiTool))
                     img.add_menu_item(label="Audio Effects Tool", callback=lambda: self.AddTool(EffectsTool))
+                    img.add_menu_item(label="Flanger Tool", callback=lambda: self.AddTool(FlangerTool))
+                    img.add_menu_item(label="Mixer Tool", callback=lambda: self.AddTool(MixerTool))
+
                     img.add_separator(label="Instrument Synthesis")
                     img.add_menu_item(label="Additive Synthesis Tool", callback=lambda: self.AddTool(SintesisAditivaTool))
+                    img.add_menu_item(label="Sample Synthesis Tool", callback=lambda: self.AddTool(SampleSynthTool))
                     img.add_menu_item(label="KPS Synthesis Tool", callback=lambda: self.AddTool(KPStrongTool))
                     img.add_menu_item(label="FM Synthesis Tool", callback=lambda: self.AddTool(SintesisFMTool))
 

@@ -96,7 +96,7 @@ class SintesisAditivaTool(Tool):
         return lambda t_in: np.interp(t_in, t, y), envelopes
 
     def update_plot(self):
-        freq = img.get_value("freq_input")
+        freq = img.get_value(self.freq_tag)
         duration = img.get_value(self.dur_tag)
 
         saved_values = []
@@ -173,7 +173,7 @@ class SintesisAditivaTool(Tool):
 
     def play_sound(self):
         duration = img.get_value(self.dur_tag)
-        freq = img.get_value("freq_input")
+        freq = img.get_value(self.freq_tag)
         harmonics = img.get_value("harmonics_slider")
         adsr_params = []
         for k in range(1, harmonics + 1):
@@ -192,7 +192,7 @@ class SintesisAditivaTool(Tool):
 
     def create_instrument(self):
         name = img.get_value("instrument_name")
-        freq = img.get_value("freq_input")
+        freq = img.get_value(self.freq_tag)
         harmonics = img.get_value("harmonics_slider")
         adsr_params = []
         for k in range(1, harmonics + 1):
@@ -208,7 +208,7 @@ class SintesisAditivaTool(Tool):
     def Run(self):
         img.add_input_text(label="Nombre del Instrumento", default_value="MiInstrumento", tag="instrument_name")
         self.dur_tag = img.add_slider_float(label="Duración (s)", default_value=1.0, min_value=0.1, max_value=5.0)
-        img.add_input_float(label="Frecuencia base (Hz)", default_value=220.0, tag="freq_input", step=1.0)
+        self.freq_tag = img.add_input_float(label="Frecuencia base (Hz)", default_value=220.0, step=1.0)
         img.add_slider_int(label="Cantidad de armónicos", default_value=3, min_value=1, max_value=8, tag="harmonics_slider", callback=self.update_plot)
 
         img.add_group(tag="SLIDER_GROUP_TAG")
@@ -270,7 +270,7 @@ class SintesisAditivaTool(Tool):
         selected = img.get_value("preset_selector")
         if selected in presets:
             freq, adsr_list = presets[selected]
-            img.set_value("freq_input", freq)
+            img.set_value(self.freq_tag, freq)
             img.set_value("harmonics_slider", 8)
             self.update_plot()
             for i, (a, d, s, s_v, r) in enumerate(adsr_list):
