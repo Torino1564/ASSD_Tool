@@ -56,6 +56,9 @@ class TransferTool(Tool):
                 img.bind_item_theme(tf_button_tag, active_theme)
                 img.bind_item_theme(filter_button_tag, default_theme)
 
+        self.minF_tag = img.add_slider_int(label="Minimum frequency exponent", default_value=0, min_value=-5, max_value=10)
+        self.maxF_tag = img.add_slider_int(label="Maximum frequency exponent", default_value=5, min_value=-5, max_value=10)
+
         # Inputs y botón bien organizados verticalmente
         with img.group(horizontal=True) as mode_selector_tag:
             filter_button_tag = img.add_button(label="Filter Mode", callback=lambda: UpdateMode("filter"))
@@ -85,7 +88,6 @@ class TransferTool(Tool):
             self.transfer_function = sg.TransferFunction(num_coeffs, den_coeffs)
 
             self.ShowTransfer()
-            self.ApplyTransference()
 
 
         with img.group(horizontal=False, parent=self.tab) as tf_group_tag:
@@ -157,10 +159,9 @@ class TransferTool(Tool):
         self.ShowTransfer()
         self.Kernel()
 
-
     def ShowTransfer(self):
         # H(f)
-        freq_pos = np.logspace(np.log10(img.get_value(self.fc) / 1000), np.log10(img.get_value(self.fc) * 1000), 20000)
+        freq_pos = np.logspace(img.get_value(self.minF_tag), img.get_value(self.maxF_tag), 200000)
         w, h = sg.freqs(self.transfer_function.num, self.transfer_function.den, worN=2 * np.pi * freq_pos)
         mag_db = 20 * np.log10(np.abs(h))
 
